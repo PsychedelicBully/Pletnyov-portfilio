@@ -1,13 +1,13 @@
-// script.js - Работающая версия с Tumblr API
+// script.js - Исправленная версия
 class PortfolioGallery {
     constructor() {
         this.galleryEl = document.getElementById('gallery');
-        this.filterBtns = document.querySelectorAll('.filter-btn');
+        this.filterBtns = document.querySelectorAll('.nav-link');
         this.searchInput = document.getElementById('searchInput');
         
-        // КОНФИГУРАЦИЯ - ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ!
-        this.TUMBLR_BLOG = 'pletnyov'; // Тестовый блог с работами
-        this.API_KEY = 'Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG'; // Публичный ключ для теста
+        // КОНФИГУРАЦИЯ - ОБНОВЛЕННЫЕ ЗНАЧЕНИЯ
+        this.TUMBLR_BLOG = 'pletnyov.tumblr.com'; // Полное имя блога
+        this.API_KEY = 'Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG';
         
         this.allPosts = [];
         this.filteredPosts = [];
@@ -53,19 +53,24 @@ class PortfolioGallery {
             this.displayPosts();
         } catch (error) {
             console.error('Error loading from Tumblr:', error);
-            this.showError();
+            this.showError(error.message);
         }
     }
     
     async fetchFromTumblrAPI() {
-        // Формируем URL для Tumblr API
-        const apiUrl = `https://api.tumblr.com/v2/blog/${this.TUMBLR_BLOG}/posts?api_key=${this.API_KEY}&limit=20&filter=text`;
+        // Правильный URL для Tumblr API
+        const apiUrl = `https://api.tumblr.com/v2/blog/${this.TUMBLR_BLOG}/posts/photo?api_key=${this.API_KEY}&limit=50`;
         
         console.log('Fetching from Tumblr API:', apiUrl);
         
         try {
-            // Пробуем прямой запрос
-            const response = await fetch(apiUrl);
+            // Используем надежный CORS прокси
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const response = await fetch(proxyUrl + apiUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -81,28 +86,30 @@ class PortfolioGallery {
             }
             
         } catch (error) {
-            console.error('Direct API request failed:', error);
+            console.error('API request failed:', error);
             
-            // Пробуем через CORS прокси
-            return await this.fetchWithCorsProxy(apiUrl);
+            // Альтернативные прокси
+            return await this.tryAlternativeProxies(apiUrl);
         }
     }
     
-    async fetchWithCorsProxy(apiUrl) {
-        const corsProxies = [
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+    async tryAlternativeProxies(apiUrl) {
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
             `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
             `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(apiUrl)}`
         ];
         
-        for (let proxyUrl of corsProxies) {
+        for (let proxyUrl of proxies) {
             try {
-                console.log('Trying CORS proxy:', proxyUrl);
+                console.log('Trying proxy:', proxyUrl);
                 const response = await fetch(proxyUrl);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    return this.processTumblrPosts(data.response.posts);
+                    if (data.response && data.response.posts) {
+                        return this.processTumblrPosts(data.response.posts);
+                    }
                 }
             } catch (error) {
                 console.log('Proxy failed:', error);
@@ -110,7 +117,7 @@ class PortfolioGallery {
             }
         }
         
-        throw new Error('All CORS proxies failed');
+        throw new Error('All API requests failed. Check blog name and internet connection.');
     }
     
     processTumblrPosts(posts) {
@@ -119,9 +126,9 @@ class PortfolioGallery {
         posts.forEach((post, index) => {
             // Обрабатываем фото-посты
             if (post.type === 'photo' && post.photos && post.photos.length > 0) {
-                post.photos.forEach(photo => {
+                post.photos.forEach((photo, photoIndex) => {
                     processedPosts.push({
-                        id: `${post.id}-${index}`,
+                        id: `${post.id}-${photoIndex}`,
                         title: post.summary || `Work ${processedPosts.length + 1}`,
                         image: photo.original_size.url,
                         tags: post.tags || [],
@@ -133,11 +140,11 @@ class PortfolioGallery {
             }
             
             // Обрабатываем текстовые посты с изображениями
-            if (post.type === 'text' || post.type === 'regular') {
+            if ((post.type === 'text' || post.type === 'regular') && post.body) {
                 const images = this.extractImagesFromContent(post.body);
-                images.forEach(imgUrl => {
+                images.forEach((imgUrl, imgIndex) => {
                     processedPosts.push({
-                        id: `${post.id}-img-${index}`,
+                        id: `${post.id}-text-${imgIndex}`,
                         title: post.title || `Work ${processedPosts.length + 1}`,
                         image: imgUrl,
                         tags: post.tags || [],
@@ -149,7 +156,7 @@ class PortfolioGallery {
             }
         });
         
-        console.log(`Processed ${processedPosts.length} posts from Tumblr`);
+        console.log(`Processed ${processedPosts.length} items from ${posts.length} posts`);
         return processedPosts;
     }
     
@@ -160,7 +167,9 @@ class PortfolioGallery {
         let match;
         
         while ((match = imgRegex.exec(content)) !== null) {
-            matches.push(match[1]);
+            if (match[1] && !match[1].includes('avatar') && !match[1].includes('icon')) {
+                matches.push(match[1]);
+            }
         }
         
         return matches;
@@ -168,7 +177,8 @@ class PortfolioGallery {
     
     extractTextContent(html) {
         if (!html) return '';
-        return html.replace(/<[^>]*>/g, '').substring(0, 100) + '...';
+        const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        return text.substring(0, 100) + (text.length > 100 ? '...' : '');
     }
     
     extractDescription(post) {
@@ -189,7 +199,7 @@ class PortfolioGallery {
         
         if (this.currentFilter !== 'all') {
             filtered = filtered.filter(post => 
-                post.tags.some(tag => 
+                post.tags && post.tags.some(tag => 
                     tag.toLowerCase().includes(this.currentFilter.toLowerCase())
                 )
             );
@@ -197,11 +207,11 @@ class PortfolioGallery {
         
         if (this.searchTerm) {
             filtered = filtered.filter(post =>
-                post.tags.some(tag => 
+                (post.tags && post.tags.some(tag => 
                     tag.toLowerCase().includes(this.searchTerm)
-                ) ||
-                post.title.toLowerCase().includes(this.searchTerm) ||
-                post.description.toLowerCase().includes(this.searchTerm)
+                )) ||
+                (post.title && post.title.toLowerCase().includes(this.searchTerm)) ||
+                (post.description && post.description.toLowerCase().includes(this.searchTerm))
             );
         }
         
@@ -228,13 +238,15 @@ class PortfolioGallery {
         item.className = 'gallery-item';
         
         item.innerHTML = `
-            <img src="${post.image}" alt="${post.title}" loading="lazy">
+            <img src="${post.image}" alt="${post.title}" loading="lazy" onerror="this.style.display='none'">
             <div class="post-info">
                 <div class="post-title">${post.title}</div>
                 <div class="post-description">${post.description}</div>
-                <div class="tags">
-                    ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                </div>
+                ${post.tags && post.tags.length > 0 ? `
+                    <div class="tags">
+                        ${post.tags.slice(0, 3).map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
                 ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
             </div>
         `;
@@ -254,37 +266,25 @@ class PortfolioGallery {
             <div class="loading">
                 <p>Загрузка работ из Tumblr...</p>
                 <p style="margin-top: 10px; font-size: 0.9em; color: #888;">
-                    Подключаюсь к блогу: ${this.TUMBLR_BLOG}
+                    Блог: ${this.TUMBLR_BLOG}
                 </p>
             </div>
         `;
     }
     
-    showError() {
+    showError(message) {
         this.galleryEl.innerHTML = `
             <div class="error">
-                <h3>Не удалось загрузить работы из Tumblr</h3>
+                <h3>Не удалось загрузить работы</h3>
+                <p style="color: #ff4444; margin: 10px 0;">${message}</p>
                 <p>Возможные причины:</p>
                 <ul style="text-align: left; max-width: 500px; margin: 15px auto;">
-                    <li>Блог ${this.TUMBLR_BLOG} не существует или приватный</li>
+                    <li>Блог <strong>${this.TUMBLR_BLOG}</strong> не существует</li>
+                    <li>Блог не содержит фото-постов</li>
                     <li>Проблемы с подключением к интернету</li>
-                    <li>Ограничения CORS</li>
+                    <li>Ограничения CORS (требуется серверный прокси)</li>
                 </ul>
-                <p>Проверьте:</p>
-                <ol style="text-align: left; max-width: 500px; margin: 15px auto;">
-                    <li>Правильность имени блога в настройках</li>
-                    <li>Что блог публичный и содержит посты с изображениями</li>
-                    <li>Что используется правильный API ключ</li>
-                </ol>
-                <button onclick="location.reload()" style="
-                    background: #333;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 15px;
-                ">Попробовать снова</button>
+                <button onclick="location.reload()" class="retry-button">Попробовать снова</button>
             </div>
         `;
     }
@@ -292,7 +292,10 @@ class PortfolioGallery {
     showNoResults() {
         this.galleryEl.innerHTML = `
             <div class="no-works">
-                <p>Пусто</p>
+                <p>Ничего не найдено</p>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #888;">
+                    Попробуйте изменить фильтр или поисковый запрос
+                </p>
             </div>
         `;
     }
