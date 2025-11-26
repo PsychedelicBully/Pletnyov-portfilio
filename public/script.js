@@ -1,4 +1,4 @@
-// script.js - Исправленная версия с Netlify Functions
+// public/script.js - Упрощенная версия
 class PortfolioGallery {
     constructor() {
         this.galleryEl = document.getElementById('gallery');
@@ -49,37 +49,39 @@ class PortfolioGallery {
             this.displayPosts();
         } catch (error) {
             console.error('Error loading from Tumblr:', error);
-            this.showError(error.message);
+            // Показываем демо-данные если API не работает
+            this.showDemoData();
         }
     }
     
     async fetchFromTumblrAPI() {
-        // Используем Netlify Function вместо прямого вызова Tumblr API
-        const functionUrl = '/api/posts';
+        // Пробуем разные эндпоинты
+        const endpoints = [
+            '/.netlify/functions/tumblr',
+            '/api/tumblr',
+            'https://api.tumblr.com/v2/blog/pletnyov.tumblr.com/posts/photo?api_key=Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG&limit=20'
+        ];
         
-        console.log('Fetching via Netlify Function:', functionUrl);
-        
-        try {
-            const response = await fetch(functionUrl);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+        for (let endpoint of endpoints) {
+            try {
+                console.log('Trying endpoint:', endpoint);
+                const response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Success with endpoint:', endpoint);
+                    
+                    if (data.response && data.response.posts) {
+                        return this.processTumblrPosts(data.response.posts);
+                    }
+                }
+            } catch (error) {
+                console.log('Endpoint failed:', endpoint, error);
+                continue;
             }
-            
-            const data = await response.json();
-            console.log('Tumblr API response via Netlify Function:', data);
-            
-            if (data.meta && data.meta.status === 200 && data.response.posts) {
-                return this.processTumblrPosts(data.response.posts);
-            } else {
-                throw new Error('Invalid response format from Tumblr API');
-            }
-            
-        } catch (error) {
-            console.error('Netlify Function request failed:', error);
-            throw new Error(`Failed to load portfolio: ${error.message}`);
         }
+        
+        throw new Error('All API endpoints failed');
     }
     
     processTumblrPosts(posts) {
@@ -87,11 +89,10 @@ class PortfolioGallery {
         
         if (!posts || !Array.isArray(posts)) {
             console.warn('No posts array in response');
-            return processedPosts;
+            return this.generateDemoPosts();
         }
         
         posts.forEach((post, index) => {
-            // Обрабатываем фото-посты
             if (post.type === 'photo' && post.photos && post.photos.length > 0) {
                 post.photos.forEach((photo, photoIndex) => {
                     if (photo.original_size && photo.original_size.url) {
@@ -99,7 +100,7 @@ class PortfolioGallery {
                             id: `${post.id}-${photoIndex}`,
                             title: post.summary || `Work ${processedPosts.length + 1}`,
                             image: photo.original_size.url,
-                            tags: post.tags || [],
+                            tags: post.tags || ['art', 'design'],
                             description: this.extractDescription(post),
                             date: post.date,
                             url: post.post_url
@@ -107,60 +108,65 @@ class PortfolioGallery {
                     }
                 });
             }
-            
-            // Обрабатываем текстовые посты с изображениями
-            if ((post.type === 'text' || post.type === 'regular') && post.body) {
-                const images = this.extractImagesFromContent(post.body);
-                images.forEach((imgUrl, imgIndex) => {
-                    processedPosts.push({
-                        id: `${post.id}-text-${imgIndex}`,
-                        title: post.title || `Work ${processedPosts.length + 1}`,
-                        image: imgUrl,
-                        tags: post.tags || [],
-                        description: this.extractTextContent(post.body),
-                        date: post.date,
-                        url: post.post_url
-                    });
-                });
-            }
         });
         
-        console.log(`Processed ${processedPosts.length} items from ${posts.length} posts`);
+        console.log(`Processed ${processedPosts.length} items`);
+        
+        // Если нет постов, показываем демо-данные
+        if (processedPosts.length === 0) {
+            return this.generateDemoPosts();
+        }
+        
         return processedPosts;
     }
     
-    extractImagesFromContent(content) {
-        if (!content) return [];
-        const imgRegex = /<img[^>]+src="([^">]+)"/g;
-        const matches = [];
-        let match;
-        
-        while ((match = imgRegex.exec(content)) !== null) {
-            if (match[1] && !match[1].includes('avatar') && !match[1].includes('icon')) {
-                matches.push(match[1]);
+    generateDemoPosts() {
+        console.log('Generating demo posts');
+        return [
+            {
+                id: 'demo-1',
+                title: 'Demo Work 1',
+                image: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop',
+                tags: ['design', 'art'],
+                description: 'Example portfolio work',
+                date: '2024-01-01',
+                url: '#'
+            },
+            {
+                id: 'demo-2',
+                title: 'Demo Work 2',
+                image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop',
+                tags: ['photo', 'art'],
+                description: 'Another example work',
+                date: '2024-01-02',
+                url: '#'
+            },
+            {
+                id: 'demo-3',
+                title: 'Demo Work 3',
+                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop',
+                tags: ['design', 'photo'],
+                description: 'Portfolio example',
+                date: '2024-01-03',
+                url: '#'
             }
-        }
-        
-        return matches;
-    }
-    
-    extractTextContent(html) {
-        if (!html) return '';
-        const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-        return text.substring(0, 100) + (text.length > 100 ? '...' : '');
+        ];
     }
     
     extractDescription(post) {
         if (post.caption) {
             return this.extractTextContent(post.caption);
         }
-        if (post.body) {
-            return this.extractTextContent(post.body);
-        }
         if (post.summary) {
             return post.summary;
         }
         return 'Portfolio work';
+    }
+    
+    extractTextContent(html) {
+        if (!html) return '';
+        const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        return text.substring(0, 100) + (text.length > 100 ? '...' : '');
     }
     
     filterPosts() {
@@ -179,8 +185,7 @@ class PortfolioGallery {
                 (post.tags && post.tags.some(tag => 
                     tag.toLowerCase().includes(this.searchTerm)
                 )) ||
-                (post.title && post.title.toLowerCase().includes(this.searchTerm)) ||
-                (post.description && post.description.toLowerCase().includes(this.searchTerm))
+                (post.title && post.title.toLowerCase().includes(this.searchTerm))
             );
         }
         
@@ -207,20 +212,17 @@ class PortfolioGallery {
         item.className = 'gallery-item';
         
         item.innerHTML = `
-            <img src="${post.image}" alt="${post.title}" loading="lazy" onerror="this.style.display='none'">
+            <img src="${post.image}" alt="${post.title}" loading="lazy">
             <div class="post-info">
                 <div class="post-title">${post.title}</div>
                 <div class="post-description">${post.description}</div>
-                ${post.tags && post.tags.length > 0 ? `
-                    <div class="tags">
-                        ${post.tags.slice(0, 3).map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                    </div>
-                ` : ''}
-                ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
+                <div class="tags">
+                    ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                </div>
             </div>
         `;
         
-        if (post.url) {
+        if (post.url && post.url !== '#') {
             item.style.cursor = 'pointer';
             item.addEventListener('click', () => {
                 window.open(post.url, '_blank');
@@ -233,32 +235,40 @@ class PortfolioGallery {
     showLoading() {
         this.galleryEl.innerHTML = `
             <div class="loading">
-                <p>Загрузка работ из Tumblr...</p>
-                <p style="margin-top: 10px; font-size: 0.9em; color: #888;">
-                    Используем Netlify Functions для обхода CORS
-                </p>
+                <p>Загрузка работ...</p>
             </div>
         `;
     }
     
-    showError(message) {
-        this.galleryEl.innerHTML = `
-            <div class="error">
-                <h3>Не удалось загрузить работы</h3>
-                <p style="color: #ff4444; margin: 10px 0;">${message}</p>
-                <p>Это нормально - мы используем Netlify Functions для обхода CORS ограничений.</p>
-                <button onclick="location.reload()" class="retry-button">Попробовать снова</button>
-            </div>
+    showDemoData() {
+        console.log('Showing demo data');
+        this.allPosts = this.generateDemoPosts();
+        this.filteredPosts = this.allPosts;
+        this.displayPosts();
+        
+        // Показываем сообщение о демо-режиме
+        const demoNotice = document.createElement('div');
+        demoNotice.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ffeb3b;
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            z-index: 1000;
         `;
+        demoNotice.textContent = 'Демо-режим: данные с Tumblr недоступны';
+        document.body.appendChild(demoNotice);
+        
+        setTimeout(() => demoNotice.remove(), 5000);
     }
     
     showNoResults() {
         this.galleryEl.innerHTML = `
             <div class="no-works">
                 <p>Ничего не найдено</p>
-                <p style="margin-top: 10px; font-size: 0.9em; color: #888;">
-                    Попробуйте изменить фильтр или поисковый запрос
-                </p>
             </div>
         `;
     }
