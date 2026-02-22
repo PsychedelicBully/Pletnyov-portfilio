@@ -386,18 +386,13 @@ class PortfolioGallery {
         </div>
     `;
 
-        // Добавляем клик для открытия деталей
+        // Изменяем обработчик клика для перехода на страницу поста
         item.style.cursor = 'pointer';
         item.addEventListener('click', (e) => {
             e.preventDefault();
 
-            // Если есть URL Tumblr, открываем его
-            if (post.url && !post.url.includes('#')) {
-                window.open(post.url, '_blank');
-            } else {
-                // Иначе показываем детали (будущая функциональность)
-                this.showPostDetails(post);
-            }
+            // Переходим на страницу поста
+            window.location.href = `/post/${post.id}`;
         });
 
         return item;

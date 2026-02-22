@@ -1,7 +1,15 @@
 {
   "name": "portfolio-gallery",
   "version": "1.0.0",
+  "description": "Portfolio gallery with individual post pages",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
   "dependencies": {
     "node-fetch": "^2.6.7"
-  }
+  },
+  "keywords": ["portfolio", "tumblr", "gallery"],
+  "author": "",
+  "license": "MIT"
 }

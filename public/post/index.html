@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pletnyov - Post</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Дополнительные стили для страницы поста */
+        .post-container {
+            max-width: 1000px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+        }
+        
+        .post-header {
+            margin-bottom: 40px;
+        }
+        
+        .post-title {
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .post-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .post-images {
+            margin-bottom: 40px;
+        }
+        
+        .post-image {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        .post-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .post-tags {
+            margin: 30px 0;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 5px 15px;
+            margin: 0 10px 10px 0;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            color: #000;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+        
+        .back-link:hover {
+            border-bottom-color: #000;
+        }
+        
+        .post-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="site-title">Pletnyov</a>
+            </div>
+            <div class="header-right">
+                <a href="/" class="back-link">← Back to Gallery</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="post-container">
+            <div class="post-header">
+                <h1 class="post-title" id="postTitle">Loading post...</h1>
+                <div class="post-meta" id="postMeta"></div>
+            </div>
+            
+            <div class="post-images" id="postImages">
+                <div class="loading">Loading images...</div>
+            </div>
+            
+            <div class="post-description" id="postDescription"></div>
+            
+            <div class="post-tags" id="postTags"></div>
+            
+            <a href="/" class="back-link">← Back to Gallery</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-copyright">
+                © 2024 Portfolio
+            </div>
+            <div class="footer-links">
+                <a href="https://tumblr.com" class="footer-link" target="_blank">Tumblr</a>
+                <a href="mailto:hello@example.com" class="footer-link">Email</a>
+                <a href="https://instagram.com" class="footer-link" target="_blank">Instagram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+    <script>
+        // Отдельный скрипт для страницы поста
+        class PostPage {
+            constructor() {
+                this.postId = this.getPostIdFromUrl();
+                this.init();
+            }
+            
+            getPostIdFromUrl() {
+                // Получаем ID поста из URL
+                const pathParts = window.location.pathname.split('/');
+                return pathParts[pathParts.length - 1];
+            }
+            
+            async init() {
+                if (!this.postId) {
+                    this.showError('Post ID not found in URL');
+                    return;
+                }
+                
+                await this.loadPost();
+            }
+            
+            async loadPost() {
+                try {
+                    // Загружаем все посты и находим нужный
+                    const posts = await this.fetchPosts();
+                    const post = posts.find(p => p.id === this.postId);
+                    
+                    if (post) {
+                        this.displayPost(post);
+                    } else {
+                        // Пробуем найти по строковому ID
+                        const postByIdString = posts.find(p => p.id_string === this.postId);
+                        if (postByIdString) {
+                            this.displayPost(postByIdString);
+                        } else {
+                            this.showError('Post not found');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading post:', error);
+                    this.showError('Failed to load post');
+                }
+            }
+            
+            async fetchPosts() {
+                // Используем тот же API запрос
+                const response = await fetch('/api/tumblr');
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+                return data.response.posts || [];
+            }
+            
+            displayPost(post) {
+                // Заголовок
+                document.getElementById('postTitle').textContent = 
+                    post.summary || post.title || 'Untitled Work';
+                
+                // Дата
+                const dateElement = document.getElementById('postMeta');
+                if (post.date) {
+                    const date = new Date(post.date);
+                    dateElement.textContent = date.toLocaleDateString('ru-RU', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                }
+                
+                // Описание
+                const descriptionElement = document.getElementById('postDescription');
+                if (post.caption || post.body) {
+                    const text = post.caption || post.body;
+                    descriptionElement.textContent = this.extractTextContent(text);
+                }
+                
+                // Теги
+                const tagsElement = document.getElementById('postTags');
+                if (post.tags && post.tags.length > 0) {
+                    tagsElement.innerHTML = post.tags.map(tag => 
+                        `<span class="tag">#${tag}</span>`
+                    ).join('');
+                }
+                
+                // Изображения
+                const imagesElement = document.getElementById('postImages');
+                imagesElement.innerHTML = '';
+                
+                let images = [];
+                
+                // Получаем все изображения из поста
+                if (post.photos && post.photos.length > 0) {
+                    images = post.photos.map(photo => photo.original_size.url);
+                } else if (post.body) {
+                    images = this.extractAllImagesFromContent(post.body);
+                }
+                
+                // Показываем все изображения
+                images.forEach((imgUrl, index) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'post-image';
+                    imgContainer.innerHTML = `
+                        <img src="${imgUrl}" alt="Image ${index + 1}" loading="lazy">
+                    `;
+                    imagesElement.appendChild(imgContainer);
+                });
+                
+                // Обновляем заголовок страницы
+                document.title = `Pletnyov - ${post.summary || post.title || 'Post'}`;
+            }
+            
+            extractTextContent(html) {
+                if (!html) return '';
+                const text = html
+                    .replace(/<[^>]*>/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                return text.substring(0, 500) + (text.length > 500 ? '...' : '');
+            }
+            
+            extractAllImagesFromContent(content) {
+                if (!content) return [];
+                const images = [];
+                const imgRegex = /<img[^>]+src="([^">]+)"/gi;
+                let match;
+                
+                while ((match = imgRegex.exec(content)) !== null) {
+                    if (match[1]) {
+                        const url = match[1].trim();
+                        if (url && !url.includes('avatar') && !url.includes('icon')) {
+                            images.push(url);
+                        }
+                    }
+                }
+                return images;
+            }
+            
+            showError(message) {
+                document.querySelector('.post-container').innerHTML = `
+                    <div style="text-align: center; padding: 100px 20px;">
+                        <h2 style="margin-bottom: 20px;">${message}</h2>
+                        <a href="/" class="back-link">← Back to Gallery</a>
+                    </div>
+                `;
+            }
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            new PostPage();
+        });
+    </script>
+</body>
+</html>
