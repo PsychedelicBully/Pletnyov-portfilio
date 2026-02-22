@@ -97,11 +97,9 @@ class PortfolioGallery {
             return this.generateDemoPosts();
         }
 
-        // Используем Set для отслеживания уникальных постов по ID
         const uniquePostIds = new Set();
 
         posts.forEach((post, index) => {
-            // Пропускаем если уже обработали этот ID
             if (uniquePostIds.has(post.id_string || post.id)) {
                 console.log(`Skipping duplicate post ID: ${post.id_string || post.id}`);
                 return;
@@ -111,33 +109,68 @@ class PortfolioGallery {
                 id: post.id_string || post.id,
                 type: post.type,
                 tags: post.tags,
-                hasBody: !!post.body
+                hasBody: !!post.body,
+                hasVideo: !!post.video_url || !!post.player
             });
 
             let images = [];
+            let videoUrl = null;
+            let embedCode = null;
+            let mediaType = 'image'; // по умолчанию
 
-            // Вариант 1: Если есть photos (фото-посты) - берем первую
-            if (post.photos && Array.isArray(post.photos) && post.photos.length > 0) {
-                console.log(`Found ${post.photos.length} photos in photo post`);
+            // --- Обработка в зависимости от типа поста ---
+            if (post.type === 'photo' && post.photos?.length > 0) {
+                // Фото-пост: берём первую фотографию
                 const firstPhoto = post.photos[0];
-                if (firstPhoto.original_size && firstPhoto.original_size.url) {
+                if (firstPhoto.original_size?.url) {
                     images.push(firstPhoto.original_size.url);
                 }
+                mediaType = 'image';
             }
-            // Вариант 2: Если есть body с изображениями (текстовые посты)
-            else if (post.body && typeof post.body === 'string') {
-                console.log(`Extracting images from body`);
-                const extractedImages = this.extractImagesFromContent(post.body);
-                if (extractedImages.length > 0) {
-                    // Берем только первую картинку
-                    images.push(extractedImages[0]);
+            else if (post.type === 'video') {
+                // Видео-пост
+                mediaType = 'video';
+
+                // 1. Берём обложку (thumbnail)
+                if (post.thumbnail_url) {
+                    images.push(post.thumbnail_url);
+                } else if (post.photos?.length > 0) {
+                    // Иногда видео может иметь photos
+                    const firstPhoto = post.photos[0];
+                    if (firstPhoto.original_size?.url) {
+                        images.push(firstPhoto.original_size.url);
+                    }
+                } else if (post.body) {
+                    // Пытаемся извлечь картинку из body
+                    const extracted = this.extractImagesFromContent(post.body);
+                    if (extracted.length) images.push(extracted[0]);
+                }
+
+                // 2. Сохраняем ссылку на видео
+                if (post.video_url) {
+                    videoUrl = post.video_url; // прямая ссылка на mp4
+                } else if (post.player) {
+                    // HTML embed код (для YouTube/Vimeo и т.п.)
+                    // post.player может быть массивом объектов с полем embed_code
+                    if (Array.isArray(post.player) && post.player[0]?.embed_code) {
+                        embedCode = post.player[0].embed_code;
+                    } else if (typeof post.player === 'string') {
+                        embedCode = post.player;
+                    }
                 }
             }
+            else if (post.body && typeof post.body === 'string') {
+                // Текстовый пост с изображениями
+                const extracted = this.extractImagesFromContent(post.body);
+                if (extracted.length) {
+                    images.push(extracted[0]);
+                }
+                mediaType = 'image';
+            }
 
-            // Если нашли изображения - создаем один пост
-            if (images.length > 0) {
-                const imageUrl = images[0];
-                console.log(`Using image URL: ${imageUrl}`);
+            // Если нашли хотя бы одно изображение или видео — создаём запись
+            if (images.length > 0 || videoUrl || embedCode) {
+                const imageUrl = images.length ? images[0] : '';
 
                 processedPosts.push({
                     id: post.id_string || post.id,
@@ -147,26 +180,21 @@ class PortfolioGallery {
                     description: this.extractDescription(post),
                     date: post.date,
                     url: post.post_url,
-                    // Сохраняем все изображения для будущей детальной страницы
+                    mediaType: mediaType,
+                    videoUrl: videoUrl,
+                    embedCode: embedCode,
                     allImages: images,
-                    originalPost: post // Сохраняем оригинальный пост для деталей
+                    originalPost: post
                 });
 
-                // Добавляем ID в Set для проверки дубликатов
                 uniquePostIds.add(post.id_string || post.id);
             } else {
-                console.log(`No images found in post ${post.id_string || post.id}`);
+                console.log(`No images/video found in post ${post.id_string || post.id}`);
             }
         });
 
-        console.log(`Processed ${processedPosts.length} unique posts from ${posts.length} total posts`);
-
-        // Если нет постов, показываем демо-данные
-        if (processedPosts.length === 0) {
-            console.log('No processed posts, showing demo data');
-            return this.generateDemoPosts();
-        }
-
+        console.log(`Processed ${processedPosts.length} unique posts (including videos)`);
+        if (processedPosts.length === 0) return this.generateDemoPosts();
         return processedPosts;
     }
 

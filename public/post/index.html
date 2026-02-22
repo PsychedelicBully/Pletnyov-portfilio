@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,44 +13,44 @@
             margin: 100px auto 50px;
             padding: 0 20px;
         }
-        
+
         .post-header {
             margin-bottom: 40px;
         }
-        
+
         .post-title {
             font-size: 2rem;
             font-weight: 500;
             margin-bottom: 10px;
         }
-        
+
         .post-meta {
             color: #666;
             font-size: 0.9rem;
             margin-bottom: 20px;
         }
-        
+
         .post-images {
             margin-bottom: 40px;
         }
-        
+
         .post-image {
             width: 100%;
             max-width: 800px;
             margin: 0 auto 20px;
             display: block;
         }
-        
+
         .post-image img {
             width: 100%;
             height: auto;
             display: block;
         }
-        
+
         .post-tags {
             margin: 30px 0;
         }
-        
+
         .tag {
             display: inline-block;
             background: #f0f0f0;
@@ -58,7 +59,7 @@
             border-radius: 3px;
             font-size: 0.9rem;
         }
-        
+
         .back-link {
             display: inline-block;
             margin-top: 40px;
@@ -68,11 +69,11 @@
             border-bottom: 1px solid transparent;
             transition: border-color 0.2s ease;
         }
-        
+
         .back-link:hover {
             border-bottom-color: #000;
         }
-        
+
         .post-description {
             font-size: 1.1rem;
             line-height: 1.6;
@@ -81,6 +82,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="header-content">
@@ -99,15 +101,15 @@
                 <h1 class="post-title" id="postTitle">Loading post...</h1>
                 <div class="post-meta" id="postMeta"></div>
             </div>
-            
+
             <div class="post-images" id="postImages">
                 <div class="loading">Loading images...</div>
             </div>
-            
+
             <div class="post-description" id="postDescription"></div>
-            
+
             <div class="post-tags" id="postTags"></div>
-            
+
             <a href="/" class="back-link">← Back to Gallery</a>
         </div>
     </main>
@@ -133,28 +135,28 @@
                 this.postId = this.getPostIdFromUrl();
                 this.init();
             }
-            
+
             getPostIdFromUrl() {
                 // Получаем ID поста из URL
                 const pathParts = window.location.pathname.split('/');
                 return pathParts[pathParts.length - 1];
             }
-            
+
             async init() {
                 if (!this.postId) {
                     this.showError('Post ID not found in URL');
                     return;
                 }
-                
+
                 await this.loadPost();
             }
-            
+
             async loadPost() {
                 try {
                     // Загружаем все посты и находим нужный
                     const posts = await this.fetchPosts();
                     const post = posts.find(p => p.id === this.postId);
-                    
+
                     if (post) {
                         this.displayPost(post);
                     } else {
@@ -171,21 +173,21 @@
                     this.showError('Failed to load post');
                 }
             }
-            
+
             async fetchPosts() {
                 // Используем тот же API запрос
                 const response = await fetch('/api/tumblr');
                 if (!response.ok) throw new Error('API request failed');
-                
+
                 const data = await response.json();
                 return data.response.posts || [];
             }
-            
+
             displayPost(post) {
                 // Заголовок
-                document.getElementById('postTitle').textContent = 
+                document.getElementById('postTitle').textContent =
                     post.summary || post.title || 'Untitled Work';
-                
+
                 // Дата
                 const dateElement = document.getElementById('postMeta');
                 if (post.date) {
@@ -196,49 +198,64 @@
                         day: 'numeric'
                     });
                 }
-                
+
                 // Описание
                 const descriptionElement = document.getElementById('postDescription');
                 if (post.caption || post.body) {
                     const text = post.caption || post.body;
                     descriptionElement.textContent = this.extractTextContent(text);
                 }
-                
+
                 // Теги
                 const tagsElement = document.getElementById('postTags');
                 if (post.tags && post.tags.length > 0) {
-                    tagsElement.innerHTML = post.tags.map(tag => 
+                    tagsElement.innerHTML = post.tags.map(tag =>
                         `<span class="tag">#${tag}</span>`
                     ).join('');
                 }
-                
-                // Изображения
-                const imagesElement = document.getElementById('postImages');
-                imagesElement.innerHTML = '';
-                
-                let images = [];
-                
-                // Получаем все изображения из поста
-                if (post.photos && post.photos.length > 0) {
-                    images = post.photos.map(photo => photo.original_size.url);
-                } else if (post.body) {
-                    images = this.extractAllImagesFromContent(post.body);
+
+                const mediaElement = document.getElementById('postImages'); // контейнер для медиа
+                mediaElement.innerHTML = '';
+
+                if (post.mediaType === 'video') {
+                    // Показываем видео
+                    const videoContainer = document.createElement('div');
+                    videoContainer.className = 'post-video';
+
+                    if (post.videoUrl) {
+                        // Прямая ссылка на mp4
+                        videoContainer.innerHTML = `
+                <video controls poster="${post.image || ''}" style="width:100%; max-width:800px;">
+                    <source src="${post.videoUrl}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+                    } else if (post.embedCode) {
+                        // Embed код (YouTube, Vimeo и т.д.)
+                        // Оборачиваем в div для адаптивности
+                        videoContainer.innerHTML = `
+                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; max-width:100%;">
+                    ${post.embedCode.replace(/width="[^"]*"/g, 'width="100%"').replace(/height="[^"]*"/g, 'height="100%"')}
+                </div>
+            `;
+                    } else {
+                        // Нет видео — показываем просто постер
+                        videoContainer.innerHTML = `<img src="${post.image}" alt="${post.title}" style="width:100%;">`;
+                    }
+                    mediaElement.appendChild(videoContainer);
+                } else {
+                    // Показываем все изображения (как раньше)
+                    let images = post.allImages || [];
+                    if (images.length === 0 && post.image) images = [post.image];
+                    images.forEach((imgUrl) => {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.className = 'post-image';
+                        imgContainer.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy">`;
+                        mediaElement.appendChild(imgContainer);
+                    });
                 }
-                
-                // Показываем все изображения
-                images.forEach((imgUrl, index) => {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'post-image';
-                    imgContainer.innerHTML = `
-                        <img src="${imgUrl}" alt="Image ${index + 1}" loading="lazy">
-                    `;
-                    imagesElement.appendChild(imgContainer);
-                });
-                
-                // Обновляем заголовок страницы
-                document.title = `Pletnyov - ${post.summary || post.title || 'Post'}`;
             }
-            
+
             extractTextContent(html) {
                 if (!html) return '';
                 const text = html
@@ -247,13 +264,13 @@
                     .trim();
                 return text.substring(0, 500) + (text.length > 500 ? '...' : '');
             }
-            
+
             extractAllImagesFromContent(content) {
                 if (!content) return [];
                 const images = [];
                 const imgRegex = /<img[^>]+src="([^">]+)"/gi;
                 let match;
-                
+
                 while ((match = imgRegex.exec(content)) !== null) {
                     if (match[1]) {
                         const url = match[1].trim();
@@ -264,7 +281,7 @@
                 }
                 return images;
             }
-            
+
             showError(message) {
                 document.querySelector('.post-container').innerHTML = `
                     <div style="text-align: center; padding: 100px 20px;">
@@ -274,11 +291,12 @@
                 `;
             }
         }
-        
+
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             new PostPage();
         });
     </script>
 </body>
+
 </html>
