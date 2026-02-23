@@ -119,22 +119,21 @@ main {
 
 /* Gallery — masonry сетка с фиксированной шириной колонок */
 .gallery {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    column-count: 3;            /* количество колонок */
+    column-gap: 1rem;           /* расстояние между колонками */
     margin: 0 auto;
     padding: 1rem;
-    justify-content: flex-start;
-    align-items: flex-start; /* ← добавляем */
 }
 
 .gallery-item {
-    flex: 0 0 300px;
-    max-width: 100%;
+    display: inline-block;       /* важно для работы multi-column */
+    width: 100%;                 /* занимает всю ширину колонки */
+    margin-bottom: 1rem;         /* отступ между элементами по вертикали */
     background: #f8f8f8;
     position: relative;
     overflow: hidden;
     transition: opacity 0.3s ease;
+    break-inside: avoid;         /* предотвращает разрыв элемента между колонками */
 }
 
 .gallery-item img {
@@ -334,7 +333,7 @@ footer {
     }
 
     .gallery {
-        /* можно оставить flex, но можно добавить запасной вариант */
+        column-count: 2;
     }
 
     .footer-content {
@@ -351,6 +350,10 @@ footer {
 @media (max-width: 480px) {
     .gallery-item {
         flex-basis: 100%; /* на самых узких экранах карточка на всю ширину */
+    }
+
+     .gallery {
+        column-count: 1;
     }
 
     .main-nav {
