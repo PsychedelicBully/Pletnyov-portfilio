@@ -47,7 +47,7 @@ class PortfolioGallery {
         // Очищаем текущую навигацию
         navContainer.innerHTML = '';
 
-        // Добавляем кнопку "All" (все посты)
+        // Добавляем кнопку "All"
         const allLink = document.createElement('a');
         allLink.href = '#';
         allLink.className = 'nav-link active';
@@ -61,16 +61,38 @@ class PortfolioGallery {
             link.href = '#';
             link.className = 'nav-link';
             link.dataset.filter = tag;
-            // Делаем первую букву заглавной для красоты
             link.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
             navContainer.appendChild(link);
         });
 
-        // Переназначаем обработчики событий
+        // Обновляем список кнопок и навешиваем обработчики только на них
         this.filterBtns = document.querySelectorAll('.nav-link');
-        this.setupEventListeners();
+        this.filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleFilterClick(e.target);
+            });
+        });
     }
 
+    async loadPortfolio() {
+        this.showLoading();
+
+        try {
+            const posts = await this.fetchFromTumblrAPI();
+            this.allPosts = posts;
+            this.filteredPosts = posts;
+
+            // Извлекаем все теги и обновляем навигацию
+            const allTags = this.extractUniqueTags(posts);
+            this.updateNavigation(allTags);
+
+            this.displayPosts();
+        } catch (error) {
+            console.error('Error loading from Tumblr:', error);
+            this.showDemoData();
+        }
+    }
 
     async fetchFromTumblrAPI() {
         // Пробуем разные эндпоинты
