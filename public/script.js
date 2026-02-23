@@ -56,28 +56,15 @@ class PortfolioGallery {
     }
 
     async fetchFromTumblrAPI() {
-        const endpoints = [
-            'https://api.tumblr.com/v2/blog/pletnyov.tumblr.com/posts?api_key=Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG&limit=20'
-        ];
-
-        for (let endpoint of endpoints) {
-            try {
-                console.log('Trying endpoint:', endpoint);
-                const response = await fetch(endpoint);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.response && data.response.posts) {
-                        return this.processTumblrPosts(data.response.posts);
-                    }
-                }
-            } catch (error) {
-                console.log('Endpoint failed:', endpoint, error);
-                continue;
-            }
+        try {
+            const response = await fetch('/api/tumblr');
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            return this.processTumblrPosts(data.response.posts);
+        } catch (error) {
+            console.warn('Using fallback demo data');
+            return this.generateDemoPosts();
         }
-
-        throw new Error('All API endpoints failed');
     }
 
     processTumblrPosts(posts) {
@@ -239,39 +226,48 @@ class PortfolioGallery {
     }
 
     extractDescription(post) {
-        if (post.tags && post.tags.length > 0) {
-            return post.tags.slice(0, 3).join(', ');
-        }
-        if (post.body) {
-            const text = this.extractTextContent(post.body);
-            if (text && text !== 'Portfolio work') {
-                return text.length > 100 ? text.substring(0, 100) + '...' : text;
+        // Сначала пробуем получить чистый текст из caption или body
+        if (post.caption) {
+            const captionText = this.extractTextContent(post.caption);
+            if (captionText && captionText !== 'Portfolio work' && captionText.trim() !== '') {
+                return captionText;
             }
         }
-        return 'Portfolio work';
+        if (post.body) {
+            const bodyText = this.extractTextContent(post.body);
+            if (bodyText && bodyText !== 'Portfolio work' && bodyText.trim() !== '') {
+                return bodyText;
+            }
+        }
+        // Если ничего нет — возвращаем пустую строку
+        return '';
     }
 
     extractTextContent(html) {
         if (!html || typeof html !== 'string') return '';
 
         try {
+            // Удаляем все теги, оставляем только текст
             const text = html
-                .replace(/<[^>]*>/g, ' ')
-                .replace(/&nbsp;/g, ' ')
-                .replace(/&amp;/g, '&')
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&quot;/g, '"')
-                .replace(/\s+/g, ' ')
+                .replace(/<[^>]*>/g, ' ')        // заменяем теги на пробелы
+                .replace(/&nbsp;/g, ' ')          // заменяем неразрывные пробелы
+                .replace(/&amp;/g, '&')           // восстанавливаем амперсанды
+                .replace(/&lt;/g, '<')            // восстанавливаем <
+                .replace(/&gt;/g, '>')            // восстанавливаем >
+                .replace(/&quot;/g, '"')          // восстанавливаем кавычки
+                .replace(/&#[0-9]+;/g, ' ')       // убираем HTML-коды символов
+                .replace(/\s+/g, ' ')             // убираем лишние пробелы
                 .trim();
 
-            if (text.length > 150) {
-                return text.substring(0, 150) + '...';
+            // Если текст не пустой и не слишком короткий (меньше 3 символов)
+            if (text && text.length > 3) {
+                // Обрезаем, если длиннее 200 символов
+                return text.length > 200 ? text.substring(0, 200) + '…' : text;
             }
-            return text || 'Portfolio work';
+            return '';
         } catch (error) {
             console.error('Error extracting text:', error);
-            return 'Portfolio work';
+            return '';
         }
     }
 
@@ -320,19 +316,20 @@ class PortfolioGallery {
 
         const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
 
+        // Формируем описание только если оно есть и не равно 'Portfolio work'
+        let descriptionHtml = '';
+        if (post.description && post.description !== 'Portfolio work' && post.description.trim() !== '') {
+            descriptionHtml = `<div class="post-description">${post.description}</div>`;
+        }
+
         item.innerHTML = `
-            <img src="${imageUrl}" alt="${post.title}" loading="lazy" 
-                 onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
-            <div class="post-info">
-                <div class="post-title">${post.title || 'Work'}</div>
-                <div class="post-description">${post.description}</div>
-                ${post.tags && post.tags.length > 0 ? `
-                    <div class="tags">
-                        ${post.tags.slice(0, 3).map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                    </div>
-                ` : ''}
-                ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
-            </div>
+        <img src="${imageUrl}" alt="${post.title}" loading="lazy" 
+             onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
+        <div class="post-info">
+            ${post.title ? `<div class="post-title">${post.title}</div>` : ''}
+            ${descriptionHtml}
+            ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
+        </div>
         `;
 
         item.style.cursor = 'pointer';
