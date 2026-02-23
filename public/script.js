@@ -77,6 +77,14 @@ class PortfolioGallery {
         const uniquePostIds = new Set();
 
         posts.forEach((post) => {
+            console.log('📦 Пост:', {
+                id: post.id_string || post.id,
+                type: post.type,
+                has_video_url: !!post.video_url,
+                has_player: !!post.player,
+                has_thumbnail: !!post.thumbnail_url,
+                tags: post.tags
+            });
             if (uniquePostIds.has(post.id_string || post.id)) return;
 
             let images = [];
@@ -91,17 +99,27 @@ class PortfolioGallery {
             }
             else if (post.type === 'video') {
                 mediaType = 'video';
-                if (post.thumbnail_url) images.push(post.thumbnail_url);
-                else if (post.photos?.length > 0) {
+                // Пытаемся получить постер
+                if (post.thumbnail_url) {
+                    images.push(post.thumbnail_url);
+                } else if (post.photos?.length > 0) {
                     const firstPhoto = post.photos[0];
                     if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
                 } else if (post.body) {
                     const extracted = this.extractImagesFromContent(post.body);
                     if (extracted.length) images.push(extracted[0]);
                 }
-
-                if (post.video_url) videoUrl = post.video_url;
-                else if (post.player) {
+                if (post.type === 'video') {
+                    console.log('🎥 Видео-пост обработан:', {
+                        images_found: images,
+                        videoUrl,
+                        embedCode: !!embedCode
+                    });
+                }
+                // Получаем ссылку на видео
+                if (post.video_url) {
+                    videoUrl = post.video_url;
+                } else if (post.player) {
                     if (Array.isArray(post.player) && post.player[0]?.embed_code) {
                         embedCode = post.player[0].embed_code;
                     } else if (typeof post.player === 'string') {
@@ -115,6 +133,10 @@ class PortfolioGallery {
                 mediaType = 'image';
             }
 
+            // Если это видео и есть videoUrl, но нет изображения, добавляем пустую строку, чтобы запись создалась
+            if (mediaType === 'video' && videoUrl && images.length === 0) {
+                images.push(''); // позволит создать запись с пустым постером
+            }
             if (images.length > 0 || videoUrl || embedCode) {
                 const imageUrl = images.length ? images[0] : '';
 
