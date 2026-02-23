@@ -26,6 +26,11 @@
   to = "/post/index.html"
   status = 200
 
+[[redirects]]
+  from = "/filters"
+  to = "/filters.html"
+  status = 200
+
 # Все остальные запросы идут на главную
 [[redirects]]
   from = "/*"
