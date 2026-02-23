@@ -128,30 +128,37 @@ main {
     margin: 0 auto;
     padding: 1rem;
     justify-content: flex-start;
+    /* Элементы прижимаются к левому краю */
 }
 
+/* Каждая карточка поста */
 .gallery-item {
     flex: 0 0 300px;
-    /* фиксированная ширина 300px */
+    /* Фиксированная ширина 300px, без растягивания */
     max-width: 100%;
+    /* Чтобы на узких экранах не выходила за границы */
     background: #f8f8f8;
-    transition: opacity 0.3s ease;
     position: relative;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
 }
 
+/* Изображение внутри карточки */
 .gallery-item img {
-    width: 100%;
-    height: auto;
-    /* высота от контента */
     display: block;
+    width: 100%;
+    /* Занимает всю ширину родителя (300px) */
+    height: auto;
+    /* Высота строго по пропорциям изображения */
     transition: transform 0.4s ease;
 }
+
 
 .gallery-item:hover img {
     transform: scale(1.02);
 }
 
-/* Информация о посте (появляется при наведении) */
+/* Затемнение и информация при наведении (как у вас было) */
 .post-info {
     position: absolute;
     bottom: 0;
@@ -164,6 +171,7 @@ main {
     transition: opacity 0.3s ease;
     pointer-events: none;
 }
+
 
 .gallery-item:hover .post-info {
     opacity: 1;
