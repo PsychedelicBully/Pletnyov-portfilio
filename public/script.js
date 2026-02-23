@@ -1,8 +1,7 @@
-// public/script.js - Упрощенная версия
+// public/script.js - Исправленная версия с фильтром из URL
 class PortfolioGallery {
     constructor() {
         this.galleryEl = document.getElementById('gallery');
-        this.filterBtns = document.querySelectorAll('.nav-link');
         this.searchInput = document.getElementById('searchInput');
 
         this.allPosts = [];
@@ -10,7 +9,16 @@ class PortfolioGallery {
         this.currentFilter = 'all';
         this.searchTerm = '';
 
+        // Получаем фильтр из URL при создании
+        this.urlFilter = this.getFilterFromUrl();
+
         this.init();
+    }
+
+    // Получение параметра filter из URL
+    getFilterFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('filter');
     }
 
     init() {
@@ -19,59 +27,10 @@ class PortfolioGallery {
     }
 
     setupEventListeners() {
-        this.filterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleFilterClick(e.target);
-            });
-        });
-
+        // Только поиск, так как кнопки фильтров на главной больше нет
         this.searchInput.addEventListener('input', (e) => {
             this.searchTerm = e.target.value.toLowerCase().trim();
             this.filterPosts();
-        });
-    }
-
-    handleFilterClick(btn) {
-        this.filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.currentFilter = btn.dataset.filter;
-        this.filterPosts();
-    }
-
-    // Новый метод для обновления навигации
-    updateNavigation(tags) {
-        const navContainer = document.querySelector('.main-nav');
-        if (!navContainer) return;
-
-        // Очищаем текущую навигацию
-        navContainer.innerHTML = '';
-
-        // Добавляем кнопку "All"
-        const allLink = document.createElement('a');
-        allLink.href = '#';
-        allLink.className = 'nav-link active';
-        allLink.dataset.filter = 'all';
-        allLink.textContent = 'All';
-        navContainer.appendChild(allLink);
-
-        // Добавляем ссылки для каждого тега
-        tags.forEach(tag => {
-            const link = document.createElement('a');
-            link.href = '#';
-            link.className = 'nav-link';
-            link.dataset.filter = tag;
-            link.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-            navContainer.appendChild(link);
-        });
-
-        // Обновляем список кнопок и навешиваем обработчики только на них
-        this.filterBtns = document.querySelectorAll('.nav-link');
-        this.filterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleFilterClick(e.target);
-            });
         });
     }
 
@@ -83,11 +42,13 @@ class PortfolioGallery {
             this.allPosts = posts;
             this.filteredPosts = posts;
 
-            // Извлекаем все теги и обновляем навигацию
-            const allTags = this.extractUniqueTags(posts);
-            this.updateNavigation(allTags);
-
-            this.displayPosts();
+            // Если в URL есть фильтр, применяем его
+            if (this.urlFilter) {
+                this.currentFilter = this.urlFilter;
+                this.filterPosts(); // filterPosts сам вызовет displayPosts
+            } else {
+                this.displayPosts();
+            }
         } catch (error) {
             console.error('Error loading from Tumblr:', error);
             this.showDemoData();
@@ -95,10 +56,7 @@ class PortfolioGallery {
     }
 
     async fetchFromTumblrAPI() {
-        // Пробуем разные эндпоинты
         const endpoints = [
-            //'/netlify/functions/tumblr',
-            //'/api/tumblr',
             'https://api.tumblr.com/v2/blog/pletnyov.tumblr.com/posts?api_key=Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG&limit=20'
         ];
 
@@ -107,14 +65,8 @@ class PortfolioGallery {
                 console.log('Trying endpoint:', endpoint);
                 const response = await fetch(endpoint);
 
-                console.log({ response })
-
                 if (response.ok) {
                     const data = await response.json();
-                    console.log({ data })
-
-                    console.log('Success with endpoint:', endpoint);
-
                     if (data.response && data.response.posts) {
                         return this.processTumblrPosts(data.response.posts);
                     }
@@ -129,69 +81,40 @@ class PortfolioGallery {
     }
 
     processTumblrPosts(posts) {
-        console.log({ posts });
         const processedPosts = [];
 
         if (!posts || !Array.isArray(posts)) {
-            console.warn('No posts array in response');
             return this.generateDemoPosts();
         }
 
         const uniquePostIds = new Set();
 
-        posts.forEach((post, index) => {
-            if (uniquePostIds.has(post.id_string || post.id)) {
-                console.log(`Skipping duplicate post ID: ${post.id_string || post.id}`);
-                return;
-            }
-
-            console.log(`Processing post ${index}:`, {
-                id: post.id_string || post.id,
-                type: post.type,
-                tags: post.tags,
-                hasBody: !!post.body,
-                hasVideo: !!post.video_url || !!post.player
-            });
+        posts.forEach((post) => {
+            if (uniquePostIds.has(post.id_string || post.id)) return;
 
             let images = [];
             let videoUrl = null;
             let embedCode = null;
-            let mediaType = 'image'; // по умолчанию
+            let mediaType = 'image';
 
-            // --- Обработка в зависимости от типа поста ---
             if (post.type === 'photo' && post.photos?.length > 0) {
-                // Фото-пост: берём первую фотографию
                 const firstPhoto = post.photos[0];
-                if (firstPhoto.original_size?.url) {
-                    images.push(firstPhoto.original_size.url);
-                }
+                if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
                 mediaType = 'image';
             }
             else if (post.type === 'video') {
-                // Видео-пост
                 mediaType = 'video';
-
-                // 1. Берём обложку (thumbnail)
-                if (post.thumbnail_url) {
-                    images.push(post.thumbnail_url);
-                } else if (post.photos?.length > 0) {
-                    // Иногда видео может иметь photos
+                if (post.thumbnail_url) images.push(post.thumbnail_url);
+                else if (post.photos?.length > 0) {
                     const firstPhoto = post.photos[0];
-                    if (firstPhoto.original_size?.url) {
-                        images.push(firstPhoto.original_size.url);
-                    }
+                    if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
                 } else if (post.body) {
-                    // Пытаемся извлечь картинку из body
                     const extracted = this.extractImagesFromContent(post.body);
                     if (extracted.length) images.push(extracted[0]);
                 }
 
-                // 2. Сохраняем ссылку на видео
-                if (post.video_url) {
-                    videoUrl = post.video_url; // прямая ссылка на mp4
-                } else if (post.player) {
-                    // HTML embed код (для YouTube/Vimeo и т.п.)
-                    // post.player может быть массивом объектов с полем embed_code
+                if (post.video_url) videoUrl = post.video_url;
+                else if (post.player) {
                     if (Array.isArray(post.player) && post.player[0]?.embed_code) {
                         embedCode = post.player[0].embed_code;
                     } else if (typeof post.player === 'string') {
@@ -200,15 +123,11 @@ class PortfolioGallery {
                 }
             }
             else if (post.body && typeof post.body === 'string') {
-                // Текстовый пост с изображениями
                 const extracted = this.extractImagesFromContent(post.body);
-                if (extracted.length) {
-                    images.push(extracted[0]);
-                }
+                if (extracted.length) images = extracted;
                 mediaType = 'image';
             }
 
-            // Если нашли хотя бы одно изображение или видео — создаём запись
             if (images.length > 0 || videoUrl || embedCode) {
                 const imageUrl = images.length ? images[0] : '';
 
@@ -228,35 +147,24 @@ class PortfolioGallery {
                 });
 
                 uniquePostIds.add(post.id_string || post.id);
-            } else {
-                console.log(`No images/video found in post ${post.id_string || post.id}`);
             }
         });
 
-        console.log(`Processed ${processedPosts.length} unique posts (including videos)`);
         if (processedPosts.length === 0) return this.generateDemoPosts();
         return processedPosts;
     }
 
     generateTitleFromPost(post) {
-        // 1. Пробуем получить из тегов
         if (post.tags && post.tags.length > 0) {
-            // Берем первый тег и делаем его заголовком
             const firstTag = post.tags[0];
-            // Делаем первую букву заглавной
             return firstTag.charAt(0).toUpperCase() + firstTag.slice(1);
         }
-
-        // 2. Пробуем создать из даты
         if (post.date) {
             const date = new Date(post.date);
             return `Work ${date.getFullYear()}`;
         }
-
-        // 3. Или просто номер
-        return `Work`;
+        return 'Work';
     }
-
 
     extractImagesFromContent(content) {
         if (!content || typeof content !== 'string') return [];
@@ -268,44 +176,28 @@ class PortfolioGallery {
         while ((match = imgRegex.exec(content)) !== null) {
             if (match[1]) {
                 const url = match[1].trim();
-
-                // Фильтруем аватарки, иконки и маленькие изображения
-                if (url &&
-                    !url.includes('avatar') &&
-                    !url.includes('icon') &&
-                    !url.includes('placeholder') &&
-                    !url.includes('tumblr.com/s75x75') && // Маленькие превью
-                    !url.includes('tumblr.com/s64x64') &&
+                if (url && !url.includes('avatar') && !url.includes('icon') &&
+                    !url.includes('tumblr.com/s75x75') && !url.includes('tumblr.com/s64x64') &&
                     !url.includes('tumblr.com/s96x96')) {
-
-                    // Предпочитаем оригинальные изображения
-                    // Ищем URL с большими размерами или оригинальными
                     if (url.includes('tumblr.com/s640x960') ||
                         url.includes('tumblr.com/s1280x1920') ||
                         url.includes('tumblr.com/s2048x3072') ||
-                        url.includes('.jpg') ||
-                        url.includes('.jpeg') ||
-                        url.includes('.png') ||
-                        url.includes('.gif') ||
-                        url.includes('.webp')) {
+                        url.includes('.jpg') || url.includes('.jpeg') ||
+                        url.includes('.png') || url.includes('.gif') || url.includes('.webp')) {
                         images.push(url);
                     }
                 }
             }
         }
 
-        // Если не нашли хороших изображений, возвращаем первое подходящее
         if (images.length === 0) {
-            // Ищем любые изображения
-            const allImgRegex = /<img[^>]+src="([^">]+)"/gi;
-            const allMatches = [...content.matchAll(allImgRegex)];
-
+            const allMatches = [...content.matchAll(/<img[^>]+src="([^">]+)"/gi)];
             for (const m of allMatches) {
                 if (m[1]) {
                     const url = m[1].trim();
                     if (!url.includes('avatar') && !url.includes('icon')) {
                         images.push(url);
-                        break; // Берем только первое
+                        break;
                     }
                 }
             }
@@ -314,9 +206,7 @@ class PortfolioGallery {
         return images;
     }
 
-
     generateDemoPosts() {
-        console.log('Generating demo posts');
         return [
             {
                 id: 'demo-1',
@@ -349,61 +239,35 @@ class PortfolioGallery {
     }
 
     extractDescription(post) {
-        // Пробуем получить из тегов
         if (post.tags && post.tags.length > 0) {
-            // Берем 2-3 тега для описания
-            const tagsForDescription = post.tags.slice(0, 3).join(', ');
-            return tagsForDescription;
+            return post.tags.slice(0, 3).join(', ');
         }
-
-        // Пробуем из body если есть
         if (post.body) {
             const text = this.extractTextContent(post.body);
             if (text && text !== 'Portfolio work') {
                 return text.length > 100 ? text.substring(0, 100) + '...' : text;
             }
         }
-
         return 'Portfolio work';
-    }
-
-    // Добавьте этот метод для сбора уникальных тегов
-    extractUniqueTags(posts) {
-        const tagsSet = new Set();
-
-        posts.forEach(post => {
-            if (post.tags && Array.isArray(post.tags)) {
-                post.tags.forEach(tag => {
-                    // Приводим к нижнему регистру и убираем лишние пробелы
-                    const cleanTag = tag.toLowerCase().trim();
-                    if (cleanTag) tagsSet.add(cleanTag);
-                });
-            }
-        });
-
-        return Array.from(tagsSet).sort(); // сортируем по алфавиту
     }
 
     extractTextContent(html) {
         if (!html || typeof html !== 'string') return '';
 
         try {
-            // Удаляем все теги и лишние пробелы
             const text = html
-                .replace(/<[^>]*>/g, ' ')  // Заменяем теги на пробелы
-                .replace(/&nbsp;/g, ' ')    // Заменяем неразрывные пробелы
-                .replace(/&amp;/g, '&')     // Восстанавливаем амперсанды
-                .replace(/&lt;/g, '<')      // Восстанавливаем <
-                .replace(/&gt;/g, '>')      // Восстанавливаем >
-                .replace(/&quot;/g, '"')    // Восстанавливаем кавычки
-                .replace(/\s+/g, ' ')       // Убираем лишние пробелы
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/\s+/g, ' ')
                 .trim();
 
-            // Если текст длинный, обрезаем и добавляем многоточие
             if (text.length > 150) {
                 return text.substring(0, 150) + '...';
             }
-
             return text || 'Portfolio work';
         } catch (error) {
             console.error('Error extracting text:', error);
@@ -454,106 +318,41 @@ class PortfolioGallery {
         const item = document.createElement('div');
         item.className = 'gallery-item';
 
-        // Используем первое изображение
         const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
 
         item.innerHTML = `
-        <img src="${imageUrl}" alt="${post.title}" loading="lazy" 
-             onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
-        <div class="post-info">
-            <div class="post-title">${post.title || 'Work'}</div>
-            <div class="post-description">${post.description}</div>
-            ${post.tags && post.tags.length > 0 ? `
-                <div class="tags">
-                    ${post.tags.slice(0, 3).map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                </div>
-            ` : ''}
-            ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
-        </div>
-    `;
+            <img src="${imageUrl}" alt="${post.title}" loading="lazy" 
+                 onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
+            <div class="post-info">
+                <div class="post-title">${post.title || 'Work'}</div>
+                <div class="post-description">${post.description}</div>
+                ${post.tags && post.tags.length > 0 ? `
+                    <div class="tags">
+                        ${post.tags.slice(0, 3).map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
+            </div>
+        `;
 
-        // Изменяем обработчик клика для перехода на страницу поста
         item.style.cursor = 'pointer';
         item.addEventListener('click', (e) => {
             e.preventDefault();
-
-            // Переходим на страницу поста
             window.location.href = `/post/${post.id}`;
         });
 
         return item;
     }
 
-    showPostDetails(post) {
-        console.log('Showing post details:', post.id);
-
-        // Создаем модальное окно с деталями поста
-        const modal = document.createElement('div');
-        modal.className = 'post-modal';
-        modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.9);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    `;
-
-        modal.innerHTML = `
-        <div style="background: white; max-width: 800px; max-height: 90vh; overflow: auto; position: relative;">
-            <button onclick="this.parentElement.parentElement.remove()" 
-                    style="position: absolute; right: 10px; top: 10px; background: #333; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;">×</button>
-            <div style="padding: 20px;">
-                <img src="${post.image}" alt="${post.title}" style="width: 100%; height: auto; max-height: 60vh; object-fit: contain;">
-                <h2 style="margin: 20px 0 10px 0;">${post.title}</h2>
-                <p>${post.description}</p>
-                ${post.tags && post.tags.length > 0 ? `
-                    <div style="margin: 10px 0;">
-                        ${post.tags.map(tag => `<span style="background: #f0f0f0; padding: 5px 10px; margin: 0 5px 5px 0; display: inline-block; border-radius: 3px;">#${tag}</span>`).join('')}
-                    </div>
-                ` : ''}
-                ${post.date ? `<div style="color: #666; margin-top: 10px;">${new Date(post.date).toLocaleDateString('ru-RU', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}</div>` : ''}
-            </div>
-        </div>
-    `;
-
-        document.body.appendChild(modal);
-
-        // Закрытие по клику на фон
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-    }
-
-
-
     showLoading() {
-        this.galleryEl.innerHTML = `
-            <div class="loading">
-                <p>Загрузка работ...</p>
-            </div>
-        `;
+        this.galleryEl.innerHTML = `<div class="loading"><p>Загрузка работ...</p></div>`;
     }
 
     showDemoData() {
-        console.log('Showing demo data');
         this.allPosts = this.generateDemoPosts();
         this.filteredPosts = this.allPosts;
         this.displayPosts();
 
-        // Показываем сообщение о демо-режиме
         const demoNotice = document.createElement('div');
         demoNotice.style.cssText = `
             position: fixed;
@@ -568,16 +367,11 @@ class PortfolioGallery {
         `;
         demoNotice.textContent = 'Демо-режим: данные с Tumblr недоступны';
         document.body.appendChild(demoNotice);
-
         setTimeout(() => demoNotice.remove(), 5000);
     }
 
     showNoResults() {
-        this.galleryEl.innerHTML = `
-            <div class="no-works">
-                <p>Ничего не найдено</p>
-            </div>
-        `;
+        this.galleryEl.innerHTML = `<div class="no-works"><p>Ничего не найдено</p></div>`;
     }
 }
 

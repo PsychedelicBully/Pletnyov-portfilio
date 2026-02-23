@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pletnyov — Filters</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="site-title">Pletnyov</a>
+            </div>
+            <div class="header-right">
+                <a href="/" class="back-link">← Back to gallery</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filters-container">
+            <h1>Filters</h1>
+            <div class="tags-cloud" id="tagsCloud">
+                <div class="loading">Loading tags...</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-copyright">© 2024 Portfolio</div>
+            <div class="footer-links">
+                <a href="https://tumblr.com" target="_blank">Tumblr</a>
+                <a href="mailto:hello@example.com">Email</a>
+                <a href="https://instagram.com" target="_blank">Instagram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./script.js"></script>
+    <script>
+        // Загружаем теги и отображаем их
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tagsCloud = document.getElementById('tagsCloud');
+            try {
+                // Используем уже существующий класс PortfolioGallery, но создадим отдельный экземпляр?
+                // Проще: загрузить посты через fetch и извлечь теги.
+                const response = await fetch('/api/tumblr');
+                const data = await response.json();
+                const posts = data.response.posts || [];
+                
+                // Собираем уникальные теги
+                const tagCounts = new Map();
+                posts.forEach(post => {
+                    if (post.tags && Array.isArray(post.tags)) {
+                        post.tags.forEach(tag => {
+                            const cleanTag = tag.toLowerCase().trim();
+                            tagCounts.set(cleanTag, (tagCounts.get(cleanTag) || 0) + 1);
+                        });
+                    }
+                });
+
+                // Сортируем по алфавиту
+                const sortedTags = Array.from(tagCounts.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+                tagsCloud.innerHTML = '';
+                sortedTags.forEach(([tag, count]) => {
+                    const tagLink = document.createElement('a');
+                    tagLink.href = `/?filter=${encodeURIComponent(tag)}`;
+                    tagLink.className = 'filter-tag';
+                    tagLink.textContent = `${tag.charAt(0).toUpperCase() + tag.slice(1)} (${count})`;
+                    tagsCloud.appendChild(tagLink);
+                });
+            } catch (error) {
+                console.error('Error loading tags:', error);
+                tagsCloud.innerHTML = '<p class="error">Failed to load tags.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
