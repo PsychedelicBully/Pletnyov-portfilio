@@ -39,20 +39,38 @@ class PortfolioGallery {
         this.filterPosts();
     }
 
-    async loadPortfolio() {
-        this.showLoading();
+    // Новый метод для обновления навигации
+    updateNavigation(tags) {
+        const navContainer = document.querySelector('.main-nav');
+        if (!navContainer) return;
 
-        try {
-            const posts = await this.fetchFromTumblrAPI();
-            this.allPosts = posts;
-            this.filteredPosts = posts;
-            this.displayPosts();
-        } catch (error) {
-            console.error('Error loading from Tumblr:', error);
-            // Показываем демо-данные если API не работает
-            this.showDemoData();
-        }
+        // Очищаем текущую навигацию
+        navContainer.innerHTML = '';
+
+        // Добавляем кнопку "All" (все посты)
+        const allLink = document.createElement('a');
+        allLink.href = '#';
+        allLink.className = 'nav-link active';
+        allLink.dataset.filter = 'all';
+        allLink.textContent = 'All';
+        navContainer.appendChild(allLink);
+
+        // Добавляем ссылки для каждого тега
+        tags.forEach(tag => {
+            const link = document.createElement('a');
+            link.href = '#';
+            link.className = 'nav-link';
+            link.dataset.filter = tag;
+            // Делаем первую букву заглавной для красоты
+            link.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+            navContainer.appendChild(link);
+        });
+
+        // Переназначаем обработчики событий
+        this.filterBtns = document.querySelectorAll('.nav-link');
+        this.setupEventListeners();
     }
+
 
     async fetchFromTumblrAPI() {
         // Пробуем разные эндпоинты
@@ -327,6 +345,23 @@ class PortfolioGallery {
         return 'Portfolio work';
     }
 
+    // Добавьте этот метод для сбора уникальных тегов
+    extractUniqueTags(posts) {
+        const tagsSet = new Set();
+
+        posts.forEach(post => {
+            if (post.tags && Array.isArray(post.tags)) {
+                post.tags.forEach(tag => {
+                    // Приводим к нижнему регистру и убираем лишние пробелы
+                    const cleanTag = tag.toLowerCase().trim();
+                    if (cleanTag) tagsSet.add(cleanTag);
+                });
+            }
+        });
+
+        return Array.from(tagsSet).sort(); // сортируем по алфавиту
+    }
+
     extractTextContent(html) {
         if (!html || typeof html !== 'string') return '';
 
@@ -370,7 +405,8 @@ class PortfolioGallery {
                 (post.tags && post.tags.some(tag =>
                     tag.toLowerCase().includes(this.searchTerm)
                 )) ||
-                (post.title && post.title.toLowerCase().includes(this.searchTerm))
+                (post.title && post.title.toLowerCase().includes(this.searchTerm)) ||
+                (post.description && post.description.toLowerCase().includes(this.searchTerm))
             );
         }
 
