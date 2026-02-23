@@ -125,6 +125,7 @@ main {
     margin: 0 auto;
     padding: 1rem;
     justify-content: flex-start;
+    align-items: flex-start; /* ← добавляем */
 }
 
 .gallery-item {
