@@ -316,20 +316,18 @@ class PortfolioGallery {
 
         const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
 
-        // Формируем описание только если оно есть и не равно 'Portfolio work'
+        // Формируем описание только если оно есть и не пустое
         let descriptionHtml = '';
         if (post.description && post.description !== 'Portfolio work' && post.description.trim() !== '') {
             descriptionHtml = `<div class="post-description">${post.description}</div>`;
         }
 
         item.innerHTML = `
-        <img src="${imageUrl}" alt="${post.title}" loading="lazy" 
+          <img src="${imageUrl}" alt="Post image" loading="lazy" 
              onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
-        <div class="post-info">
-            ${post.title ? `<div class="post-title">${post.title}</div>` : ''}
+          <div class="post-info">
             ${descriptionHtml}
-            ${post.date ? `<div class="post-date">${new Date(post.date).toLocaleDateString()}</div>` : ''}
-        </div>
+          </div>
         `;
 
         item.style.cursor = 'pointer';
