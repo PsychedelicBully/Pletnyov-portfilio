@@ -314,20 +314,30 @@ class PortfolioGallery {
         const item = document.createElement('div');
         item.className = 'gallery-item';
 
-        const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
-
         // Формируем описание только если оно есть и не пустое
         let descriptionHtml = '';
         if (post.description && post.description !== 'Portfolio work' && post.description.trim() !== '') {
             descriptionHtml = `<div class="post-description">${post.description}</div>`;
         }
 
+        let mediaHtml = '';
+        if (post.mediaType === 'video' && post.videoUrl) {
+            // Видео: автовоспроизведение, без звука, зациклено, без элементов управления
+            mediaHtml = `<video autoplay muted loop playsinline poster="${post.image || ''}">
+            <source src="${post.videoUrl}" type="video/mp4">
+        </video>`;
+        } else {
+            // Обычное изображение
+            const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
+            mediaHtml = `<img src="${imageUrl}" alt="Post image" loading="lazy" 
+            onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">`;
+        }
+
         item.innerHTML = `
-          <img src="${imageUrl}" alt="Post image" loading="lazy" 
-             onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">
-          <div class="post-info">
+        ${mediaHtml}
+        <div class="post-info">
             ${descriptionHtml}
-          </div>
+        </div>
         `;
 
         item.style.cursor = 'pointer';
