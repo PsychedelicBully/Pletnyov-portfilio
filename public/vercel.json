@@ -1,0 +1,31 @@
+{
+    "builds": [
+        {
+            "src": "public/**",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "api/*.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "outputDirectory": "public",
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
+        },
+        {
+            "src": "/post/(.*)",
+            "dest": "/post/index.html"
+        },
+        {
+            "src": "/filters",
+            "dest": "/filters.html"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ]
+}
