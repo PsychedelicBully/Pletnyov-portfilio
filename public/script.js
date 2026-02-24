@@ -15,6 +15,37 @@ class PortfolioGallery {
         this.init();
     }
 
+    extractVideoFromContent(content) {
+        if (!content || typeof content !== 'string') return null;
+
+        // Поиск тега <video> с poster и source src
+        const videoRegex = /<video[^>]*poster="([^"]*)"[^>]*>.*?<source[^>]*src="([^"]*)"[^>]*>/gis;
+        const match = videoRegex.exec(content);
+        if (match && match[2]) {
+            return {
+                videoUrl: match[2],
+                poster: match[1] || ''
+            };
+        }
+
+        // Поиск NPF-данных в атрибуте data-npf
+        const npfRegex = /data-npf='({.*?})'/gis;
+        const npfMatch = npfRegex.exec(content);
+        if (npfMatch) {
+            try {
+                const npf = JSON.parse(npfMatch[1]);
+                if (npf.type === 'video' && npf.url) {
+                    return {
+                        videoUrl: npf.url,
+                        poster: npf.poster && npf.poster[0] ? npf.poster[0].url : ''
+                    };
+                }
+            } catch (e) { }
+        }
+
+        return null;
+    }
+
     // Получение параметра filter из URL
     getFilterFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -85,6 +116,7 @@ class PortfolioGallery {
                 has_thumbnail: !!post.thumbnail_url,
                 tags: post.tags
             });
+
             if (uniquePostIds.has(post.id_string || post.id)) return;
 
             let images = [];
@@ -92,14 +124,17 @@ class PortfolioGallery {
             let embedCode = null;
             let mediaType = 'image';
 
+            // --- Фото-пост ---
             if (post.type === 'photo' && post.photos?.length > 0) {
                 const firstPhoto = post.photos[0];
                 if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
                 mediaType = 'image';
             }
+
+            // --- Видео-пост (настоящий тип video) ---
             else if (post.type === 'video') {
                 mediaType = 'video';
-                // Пытаемся получить постер
+                // Постер
                 if (post.thumbnail_url) {
                     images.push(post.thumbnail_url);
                 } else if (post.photos?.length > 0) {
@@ -109,14 +144,8 @@ class PortfolioGallery {
                     const extracted = this.extractImagesFromContent(post.body);
                     if (extracted.length) images.push(extracted[0]);
                 }
-                if (post.type === 'video') {
-                    console.log('🎥 Видео-пост обработан:', {
-                        images_found: images,
-                        videoUrl,
-                        embedCode: !!embedCode
-                    });
-                }
-                // Получаем ссылку на видео
+
+                // Ссылка на видео
                 if (post.video_url) {
                     videoUrl = post.video_url;
                 } else if (post.player) {
@@ -126,17 +155,43 @@ class PortfolioGallery {
                         embedCode = post.player;
                     }
                 }
-            }
-            else if (post.body && typeof post.body === 'string') {
-                const extracted = this.extractImagesFromContent(post.body);
-                if (extracted.length) images = extracted;
-                mediaType = 'image';
+
+                console.log('🎥 Видео-пост обработан:', {
+                    images_found: images,
+                    videoUrl,
+                    embedCode: !!embedCode
+                });
             }
 
-            // Если это видео и есть videoUrl, но нет изображения, добавляем пустую строку, чтобы запись создалась
-            if (mediaType === 'video' && videoUrl && images.length === 0) {
-                images.push(''); // позволит создать запись с пустым постером
+            // --- Текстовый пост (может содержать встроенное видео) ---
+            else if (post.body && typeof post.body === 'string') {
+                // 1. Пытаемся извлечь видео из содержимого
+                const videoInfo = this.extractVideoFromContent(post.body);
+                if (videoInfo) {
+                    mediaType = 'video';
+                    videoUrl = videoInfo.videoUrl;
+                    if (videoInfo.poster) {
+                        images.push(videoInfo.poster);
+                    }
+                }
+
+                // 2. Извлекаем все изображения (нужны для детальной страницы)
+                const extracted = this.extractImagesFromContent(post.body);
+                if (extracted.length) {
+                    // Если видео не найдено или нет постера, используем первое изображение как постер
+                    if (!images.length) {
+                        images = [extracted[0]];
+                    }
+                    // Сохраняем все изображения в allImages (пока просто в переменной, добавим позже)
+                }
+
+                // 3. Если видео есть, но нет даже постера, добавляем пустую строку, чтобы запись создалась
+                if (videoInfo && !images.length) {
+                    images.push('');
+                }
             }
+
+            // --- Если нашли медиа (изображение или видео), создаём запись ---
             if (images.length > 0 || videoUrl || embedCode) {
                 const imageUrl = images.length ? images[0] : '';
 
@@ -151,7 +206,7 @@ class PortfolioGallery {
                     mediaType: mediaType,
                     videoUrl: videoUrl,
                     embedCode: embedCode,
-                    allImages: images,
+                    allImages: images, // все изображения (первое используется как постер/картинка)
                     originalPost: post
                 });
 

@@ -17,7 +17,7 @@ exports.handler = async function(event, context) {
         const blog = 'pletnyov.tumblr.com';
         
         // Получаем больше постов для детальных страниц
-        const tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?api_key=${API_KEY}&limit=50`;
+        const tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?api_key=${API_KEY}&limit=100`;
 
         const response = await fetch(tumblrUrl);
         
