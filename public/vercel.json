@@ -10,22 +10,22 @@
         }
     ],
     "outputDirectory": "public",
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
         },
         {
-            "src": "/post/(.*)",
-            "dest": "/post/index.html"
+            "source": "/post/(.*)",
+            "destination": "/post/index.html"
         },
         {
-            "src": "/filters",
-            "dest": "/filters.html"
+            "source": "/filters",
+            "destination": "/filters.html"
         },
         {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
