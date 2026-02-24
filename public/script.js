@@ -99,6 +99,9 @@ class PortfolioGallery {
     }
 
     processTumblrPosts(posts) {
+        // В начале processTumblrPosts, после проверки на массив:
+        posts.sort((a, b) => new Date(a.date) - new Date(b.date)); // старые сверху
+
         const processedPosts = [];
 
         if (!posts || !Array.isArray(posts)) {
@@ -369,6 +372,12 @@ class PortfolioGallery {
             );
         }
 
+        // Добавляем первый пост (если его нет в отфильтрованных)
+        const pinnedPost = this.allPosts[0];
+        if (pinnedPost && !filtered.some(p => p.id === pinnedPost.id)) {
+            filtered.unshift(pinnedPost);
+        }
+
         this.filteredPosts = filtered;
         this.displayPosts();
     }
@@ -379,12 +388,59 @@ class PortfolioGallery {
             return;
         }
 
-        this.galleryEl.innerHTML = '';
+        // Разделяем первый пост и остальные
+        const [pinnedPost, ...otherPosts] = this.filteredPosts;
 
-        this.filteredPosts.forEach(post => {
+        // Отображаем закреплённый пост (всегда первый)
+        const pinnedContainer = document.getElementById('pinnedPost');
+        if (pinnedContainer) {
+            pinnedContainer.innerHTML = ''; // очищаем
+            pinnedContainer.appendChild(this.createPinnedItem(pinnedPost));
+        }
+
+        // Отображаем остальные посты в галерее
+        this.galleryEl.innerHTML = '';
+        otherPosts.forEach(post => {
             const item = this.createGalleryItem(post);
             this.galleryEl.appendChild(item);
         });
+    }
+
+    createPinnedItem(post) {
+        const item = document.createElement('div');
+        item.className = 'pinned-gallery-item'; // отдельный класс
+
+        // Описание (как и в обычном посте)
+        let descriptionHtml = '';
+        if (post.description && post.description !== 'Portfolio work' && post.description.trim() !== '') {
+            descriptionHtml = `<div class="post-description">${post.description}</div>`;
+        }
+
+        let mediaHtml = '';
+        if (post.mediaType === 'video' && post.videoUrl) {
+            mediaHtml = `<video autoplay muted loop playsinline poster="${post.image || ''}">
+            <source src="${post.videoUrl}" type="video/mp4">
+        </video>`;
+        } else {
+            const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
+            mediaHtml = `<img src="${imageUrl}" alt="Pinned post" loading="lazy" 
+            onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">`;
+        }
+
+        item.innerHTML = `
+        ${mediaHtml}
+        <div class="post-info">
+            ${descriptionHtml}
+        </div>
+    `;
+
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/post/${post.id}`;
+        });
+
+        return item;
     }
 
     createGalleryItem(post) {
