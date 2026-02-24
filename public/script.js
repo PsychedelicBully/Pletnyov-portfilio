@@ -402,60 +402,14 @@ class PortfolioGallery {
             return;
         }
 
-        // Разделяем первый пост и остальные
-        const [pinnedPost, ...otherPosts] = this.filteredPosts;
-
-        // Отображаем закреплённый пост (всегда первый)
-        const pinnedContainer = document.getElementById('pinnedPost');
-        if (pinnedContainer) {
-            pinnedContainer.innerHTML = ''; // очищаем
-            pinnedContainer.appendChild(this.createPinnedItem(pinnedPost));
-        }
-
-        // Отображаем остальные посты в галерее
         this.galleryEl.innerHTML = '';
-        otherPosts.forEach(post => {
+
+        this.filteredPosts.forEach(post => {
             const item = this.createGalleryItem(post);
             this.galleryEl.appendChild(item);
         });
     }
 
-    createPinnedItem(post) {
-        const item = document.createElement('div');
-        item.className = 'pinned-gallery-item'; // отдельный класс
-
-        // Описание (как и в обычном посте)
-        let descriptionHtml = '';
-        if (post.description && post.description !== 'Portfolio work' && post.description.trim() !== '') {
-            descriptionHtml = `<div class="post-description">${post.description}</div>`;
-        }
-
-        let mediaHtml = '';
-        if (post.mediaType === 'video' && post.videoUrl) {
-            mediaHtml = `<video autoplay muted loop playsinline poster="${post.image || ''}">
-            <source src="${post.videoUrl}" type="video/mp4">
-        </video>`;
-        } else {
-            const imageUrl = post.image || 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop';
-            mediaHtml = `<img src="${imageUrl}" alt="Pinned post" loading="lazy" 
-            onerror="this.src='https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop'">`;
-        }
-
-        item.innerHTML = `
-        ${mediaHtml}
-        <div class="post-info">
-            ${descriptionHtml}
-        </div>
-    `;
-
-        item.style.cursor = 'pointer';
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/post/${post.id}`;
-        });
-
-        return item;
-    }
 
     createGalleryItem(post) {
         const item = document.createElement('div');
