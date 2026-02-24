@@ -201,16 +201,13 @@ main {
 
 /* Закреплённый пост */
 .pinned-post {
-    position: sticky;
-    top: 80px;
-    /* высота хедера */
-    left: 0;
     width: 100%;
     max-width: 300px;
-    /* или как у вас ширина карточки */
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     background: #fff;
-    z-index: 10;
+    /* position: sticky; удалить */
+    /* top: 80px; удалить */
+    /* z-index: 10; удалить */
 }
 
 .pinned-gallery-item {

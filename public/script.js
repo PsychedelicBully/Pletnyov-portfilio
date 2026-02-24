@@ -99,15 +99,12 @@ class PortfolioGallery {
     }
 
     processTumblrPosts(posts) {
-        // В начале processTumblrPosts, после проверки на массив:
-        posts.sort((a, b) => new Date(a.date) - new Date(b.date)); // старые сверху
-
-        const processedPosts = [];
-
+        // Проверка входных данных
         if (!posts || !Array.isArray(posts)) {
             return this.generateDemoPosts();
         }
 
+        const processedPosts = [];
         const uniquePostIds = new Set();
 
         posts.forEach((post) => {
@@ -178,14 +175,14 @@ class PortfolioGallery {
                     }
                 }
 
-                // 2. Извлекаем все изображения (нужны для детальной страницы)
+                // 2. Извлекаем все изображения
                 const extracted = this.extractImagesFromContent(post.body);
                 if (extracted.length) {
                     // Если видео не найдено или нет постера, используем первое изображение как постер
                     if (!images.length) {
                         images = [extracted[0]];
                     }
-                    // Сохраняем все изображения в allImages (пока просто в переменной, добавим позже)
+                    // Сохраняем все изображения в allImages (позже добавим в объект)
                 }
 
                 // 3. Если видео есть, но нет даже постера, добавляем пустую строку, чтобы запись создалась
@@ -209,7 +206,7 @@ class PortfolioGallery {
                     mediaType: mediaType,
                     videoUrl: videoUrl,
                     embedCode: embedCode,
-                    allImages: images, // все изображения (первое используется как постер/картинка)
+                    allImages: images,
                     originalPost: post
                 });
 
@@ -217,7 +214,20 @@ class PortfolioGallery {
             }
         });
 
+        // --- Поиск и перемещение pinned-поста в начало ---
+        const pinnedIndex = processedPosts.findIndex(p =>
+            p.tags && p.tags.some(tag => tag.toLowerCase() === 'pinned')
+        );
+
+        if (pinnedIndex !== -1) {
+            const [pinnedPost] = processedPosts.splice(pinnedIndex, 1);
+            processedPosts.unshift(pinnedPost);
+            console.log('📌 Найден pinned-пост, перемещён в начало:', pinnedPost.id);
+        }
+
+        // Если после обработки нет постов, возвращаем демо
         if (processedPosts.length === 0) return this.generateDemoPosts();
+
         return processedPosts;
     }
 
@@ -352,15 +362,15 @@ class PortfolioGallery {
     }
 
     filterPosts() {
-        let filtered = this.allPosts;
-
-        if (this.currentFilter !== 'all') {
-            filtered = filtered.filter(post =>
-                post.tags && post.tags.some(tag =>
+        let filtered = this.allPosts.filter(post => {
+            // Поиск по тегам (ваш текущий фильтр)
+            if (this.currentFilter !== 'all') {
+                return post.tags && post.tags.some(tag =>
                     tag.toLowerCase().includes(this.currentFilter.toLowerCase())
-                )
-            );
-        }
+                );
+            }
+            return true;
+        });
 
         if (this.searchTerm) {
             filtered = filtered.filter(post =>
@@ -372,8 +382,12 @@ class PortfolioGallery {
             );
         }
 
-        // Добавляем первый пост (если его нет в отфильтрованных)
-        const pinnedPost = this.allPosts[0];
+        // Находим pinned-пост в оригинальном массиве
+        const pinnedPost = this.allPosts.find(p =>
+            p.tags && p.tags.some(tag => tag.toLowerCase() === 'pinned')
+        );
+
+        // Если pinned-пост существует и его нет в filtered, добавляем его в начало
         if (pinnedPost && !filtered.some(p => p.id === pinnedPost.id)) {
             filtered.unshift(pinnedPost);
         }
