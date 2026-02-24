@@ -168,7 +168,7 @@ main {
     /* важно для работы multi-column */
     width: 100%;
     /* занимает всю ширину колонки */
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     /* отступ между элементами по вертикали */
     background: #ffffff;
     position: relative;
