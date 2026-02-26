@@ -21,6 +21,99 @@
             background: #fff;
         }
 
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #f0f0f0;
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .site-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+
+        .site-title:hover {
+            opacity: 0.7;
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            color: #000;
+            text-decoration: none;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            opacity: 1;
+            border-bottom: 1px solid #000;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            width: 120px;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
+            color: #000;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-bottom-color: #000;
+            width: 180px;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+            font-weight: 400;
+        }
+
         /* ====== GRID LAYOUT ====== */
 
         .post-layout {
