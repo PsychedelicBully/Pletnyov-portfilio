@@ -219,6 +219,18 @@
             color: #111;
         }
 
+        .post-layout {
+            margin-top: 80px;
+            /* отступ, равный высоте хедера */
+        }
+
+        @media (max-width: 900px) {
+            .post-layout {
+                margin-top: 120px;
+                /* на мобильных хедер может быть выше из-за переноса элементов */
+            }
+        }
+
         /* ====== RESPONSIVE ====== */
 
         @media (max-width: 900px) {
