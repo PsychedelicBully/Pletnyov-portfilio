@@ -13,38 +13,21 @@
             font-family: Arial, sans-serif;
         }
 
-        /* ===== GRID LAYOUT ===== */
-
+        /* ================== GRID LAYOUT ================== */
         .post-layout {
             display: grid;
-            grid-template-columns: 180px 1fr 420px;
+            grid-template-columns: 400px 220px 1fr;
             min-height: 100vh;
         }
 
-        /* ===== LEFT COLUMN ===== */
-
+        /* ===== LEFT COLUMN: MEDIA ===== */
         .left-column {
             padding: 40px 20px;
             border-right: 1px solid #eee;
         }
 
-        .left-column a {
-            text-decoration: none;
-            color: #000;
-            font-size: 14px;
-        }
-
-        /* ===== CENTER COLUMN (MEDIA) ===== */
-
-        .center-column {
-            padding: 80px 40px;
-            display: flex;
-            justify-content: center;
-        }
-
         .post-media {
             width: 100%;
-            max-width: 900px;
         }
 
         .post-media img,
@@ -52,50 +35,84 @@
         .post-media iframe {
             width: 100%;
             height: auto;
-            margin-bottom: 40px;
             display: block;
+            margin-bottom: 30px;
         }
 
-        /* ===== RIGHT COLUMN (TEXT) ===== */
+        /* ===== CENTER COLUMN: HEADERS / NAVIGATION ===== */
+        .center-column {
+            padding: 40px 20px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            font-size: 16px;
+        }
 
+        .center-column h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        /* ===== RIGHT COLUMN: DATA / POST CONTENT ===== */
         .right-column {
-            padding: 80px 40px;
-            border-left: 1px solid #eee;
+            padding: 40px 20px;
         }
 
         .post-title {
-            font-size: 28px;
-            font-weight: 500;
-            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
 
-        .post-date {
+        .post-date,
+        .post-id {
             font-size: 14px;
             color: #777;
-            margin-bottom: 30px;
+            margin-bottom: 12px;
         }
 
         .post-description {
             font-size: 16px;
-            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
         .post-tags {
-            margin-top: 40px;
+            margin-bottom: 20px;
         }
 
-        .tag {
+        .post-tags .tag {
             display: inline-block;
             font-size: 13px;
             color: #555;
-            margin-right: 10px;
+            margin-right: 8px;
         }
 
-        /* ===== Responsive ===== */
+        /* SHARE BUTTONS */
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
+        .share-buttons a {
+            font-size: 14px;
+            color: #0056b3;
+        }
+
+        /* PREV / NEXT */
+        .post-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        /* ================== RESPONSIVE ================== */
         @media (max-width: 1200px) {
             .post-layout {
-                grid-template-columns: 120px 1fr 360px;
+                grid-template-columns: 1fr 200px 1fr;
             }
         }
 
@@ -105,40 +122,52 @@
             }
 
             .left-column,
+            .center-column,
             .right-column {
                 border: none;
-                padding: 40px 20px;
-            }
-
-            .center-column {
-                padding: 40px 20px;
+                padding: 20px 16px;
             }
         }
     </style>
 </head>
 
 <body>
-
     <div class="post-layout">
 
-        <!-- LEFT -->
+        <!-- LEFT: MEDIA -->
         <div class="left-column">
-            <a href="/">← Back</a>
-        </div>
-
-        <!-- CENTER (MEDIA) -->
-        <div class="center-column">
             <div class="post-media" id="postMedia">
                 Loading...
             </div>
         </div>
 
-        <!-- RIGHT (TEXT) -->
+        <!-- CENTER: HEADERS / NAVIGATION -->
+        <div class="center-column">
+            <h2>Post</h2>
+            <h2>Share</h2>
+            <h2>Navigation</h2>
+        </div>
+
+        <!-- RIGHT: POST DATA -->
         <div class="right-column">
             <div class="post-title" id="postTitle"></div>
             <div class="post-date" id="postDate"></div>
             <div class="post-description" id="postDescription"></div>
             <div class="post-tags" id="postTags"></div>
+            <div class="post-id" id="postId"></div>
+
+            <div class="share-buttons">
+                <a href="#" id="shareFacebook">Facebook</a>
+                <a href="#" id="shareLinkedIn">LinkedIn</a>
+                <a href="#" id="sharePinterest">Pinterest</a>
+                <a href="#" id="shareTumblr">Tumblr</a>
+                <a href="#" id="shareTwitter">Twitter</a>
+            </div>
+
+            <div class="post-navigation">
+                <a href="#" id="prevPost">Предыдущее</a>
+                <a href="#" id="nextPost">Далее</a>
+            </div>
         </div>
 
     </div>
@@ -172,7 +201,6 @@
             }
 
             render(post) {
-
                 // TITLE
                 document.getElementById('postTitle').textContent =
                     post.summary || post.title || '';
@@ -203,23 +231,24 @@
                         ).join('');
                 }
 
+                // POST ID
+                document.getElementById('postId').textContent = `ID: ${post.id || post.id_string}`;
+
                 // MEDIA
                 const media = document.getElementById('postMedia');
                 media.innerHTML = '';
 
-                // Если это HTML-пост — извлекаем медиа из body
+                // HTML-пост
                 if (post.format === "html" && post.body) {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(post.body, 'text/html');
-
                     const mediaElements = doc.querySelectorAll('img, video, iframe');
-
                     mediaElements.forEach(el => {
                         media.appendChild(el.cloneNode(true));
                     });
                 }
 
-                // Если фото-пост
+                // Фото-пост
                 if (post.photos && post.photos.length) {
                     post.photos.forEach(photo => {
                         const img = document.createElement('img');
@@ -227,6 +256,14 @@
                         media.appendChild(img);
                     });
                 }
+
+                // SHARE LINKS (пример генерации URL)
+                const url = encodeURIComponent(window.location.href);
+                document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer.php?u=${url}`;
+                document.getElementById('shareLinkedIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+                document.getElementById('sharePinterest').href = `https://pinterest.com/pin/create/button/?url=${url}`;
+                document.getElementById('shareTumblr').href = `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${url}`;
+                document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?url=${url}`;
             }
         }
 
