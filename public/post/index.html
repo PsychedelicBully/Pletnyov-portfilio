@@ -243,9 +243,21 @@
                     }
                     mediaElement.appendChild(videoContainer);
                 } else {
-                    // Показываем все изображения (как раньше)
-                    let images = post.allImages || [];
-                    if (images.length === 0 && post.image) images = [post.image];
+                    // Показываем изображения из Tumblr photo post
+                    let images = [];
+
+                    if (post.photos && post.photos.length > 0) {
+                        images = post.photos.map(photo => photo.original_size.url);
+                    }
+                    else if (post.image) {
+                        images = [post.image];
+                    }
+
+                    // fallback — пробуем вытащить из caption
+                    if (images.length === 0 && post.caption) {
+                        images = this.extractAllImagesFromContent(post.caption);
+                    }
+
                     images.forEach((imgUrl) => {
                         const imgContainer = document.createElement('div');
                         imgContainer.className = 'post-image';
