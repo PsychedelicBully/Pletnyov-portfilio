@@ -153,22 +153,18 @@
             async loadPost() {
                 try {
                     const posts = await this.fetchPosts();
-                    const post = posts.find(p => p.id === this.postId);
+                    const post = posts.find(
+                        p => String(p.id) === this.postId || p.id_string === this.postId
+                    );
 
-                    console.log("ALL POSTS:", posts);
                     console.log("FOUND POST:", post);
 
-                    if (post) {
-                        this.displayPost(post);
-                    } else {
-                        // Пробуем найти по строковому ID
-                        const postByIdString = posts.find(p => p.id_string === this.postId);
-                        if (postByIdString) {
-                            this.displayPost(postByIdString);
-                        } else {
-                            this.showError('Post not found');
-                        }
+                    if (!post) {
+                        this.showError('Post not found');
+                        return;
                     }
+
+                    this.displayPost(post);
                 } catch (error) {
                     console.error('Error loading post:', error);
                     this.showError('Failed to load post');
