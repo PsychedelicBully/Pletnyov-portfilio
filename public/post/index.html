@@ -7,7 +7,6 @@
     <title>Pletnyov - Post</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        /* Дополнительные стили для страницы поста */
         .post-container {
             max-width: 1000px;
             margin: 100px auto 50px;
@@ -30,21 +29,26 @@
             margin-bottom: 20px;
         }
 
-        .post-images {
+        .post-content {
             margin-bottom: 40px;
         }
 
-        .post-image {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto 20px;
-            display: block;
-        }
-
-        .post-image img {
+        .post-content img {
             width: 100%;
             height: auto;
-            display: block;
+            margin-bottom: 20px;
+        }
+
+        .post-content iframe {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            aspect-ratio: 16 / 9;
+        }
+
+        .post-content video {
+            width: 100%;
+            margin-bottom: 20px;
         }
 
         .post-tags {
@@ -73,13 +77,6 @@
         .back-link:hover {
             border-bottom-color: #000;
         }
-
-        .post-description {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            color: #333;
-        }
     </style>
 </head>
 
@@ -102,11 +99,9 @@
                 <div class="post-meta" id="postMeta"></div>
             </div>
 
-            <div class="post-images" id="postImages">
-                <div class="loading">Loading images...</div>
+            <div class="post-content" id="postContent">
+                Loading content...
             </div>
-
-            <div class="post-description" id="postDescription"></div>
 
             <div class="post-tags" id="postTags"></div>
 
@@ -114,21 +109,7 @@
         </div>
     </main>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-copyright">
-                © 2024 Portfolio
-            </div>
-            <div class="footer-links">
-                <a href="https://tumblr.com" class="footer-link" target="_blank">Tumblr</a>
-                <a href="mailto:hello@example.com" class="footer-link">Email</a>
-                <a href="https://instagram.com" class="footer-link" target="_blank">Instagram</a>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // Отдельный скрипт для страницы поста
         class PostPage {
             constructor() {
                 this.postId = this.getPostIdFromUrl();
@@ -136,7 +117,6 @@
             }
 
             getPostIdFromUrl() {
-                // Получаем ID поста из URL
                 const pathParts = window.location.pathname.split('/');
                 return pathParts[pathParts.length - 1];
             }
@@ -146,7 +126,6 @@
                     this.showError('Post ID not found in URL');
                     return;
                 }
-
                 await this.loadPost();
             }
 
@@ -172,10 +151,8 @@
             }
 
             async fetchPosts() {
-                // Используем тот же API запрос
                 const response = await fetch('/api/tumblr');
                 if (!response.ok) throw new Error('API request failed');
-
                 const data = await response.json();
                 return data.response.posts || [];
             }
@@ -196,11 +173,16 @@
                     });
                 }
 
-                // Описание
-                const descriptionElement = document.getElementById('postDescription');
-                if (post.caption || post.body) {
-                    const text = post.caption || post.body;
-                    descriptionElement.textContent = this.extractTextContent(text);
+                // Основной контент (КЛЮЧЕВОЕ ИЗМЕНЕНИЕ)
+                const contentElement = document.getElementById('postContent');
+                contentElement.innerHTML = '';
+
+                if (post.format === "html" && post.body) {
+                    contentElement.innerHTML = post.body;
+                } else if (post.caption) {
+                    contentElement.innerHTML = post.caption;
+                } else {
+                    contentElement.innerHTML = "<p>No content available.</p>";
                 }
 
                 // Теги
@@ -210,86 +192,6 @@
                         `<span class="tag">#${tag}</span>`
                     ).join('');
                 }
-
-                const mediaElement = document.getElementById('postImages'); // контейнер для медиа
-                mediaElement.innerHTML = '';
-
-                if (post.mediaType === 'video') {
-                    // Показываем видео
-                    const videoContainer = document.createElement('div');
-                    videoContainer.className = 'post-video';
-
-                    if (post.videoUrl) {
-                        // Прямая ссылка на mp4
-                        videoContainer.innerHTML = `
-                <video controls poster="${post.image || ''}" style="width:100%; max-width:800px;">
-                    <source src="${post.videoUrl}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            `;
-                    } else if (post.embedCode) {
-                        // Embed код (YouTube, Vimeo и т.д.)
-                        // Оборачиваем в div для адаптивности
-                        videoContainer.innerHTML = `
-                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; max-width:100%;">
-                    ${post.embedCode.replace(/width="[^"]*"/g, 'width="100%"').replace(/height="[^"]*"/g, 'height="100%"')}
-                </div>
-            `;
-                    } else {
-                        // Нет видео — показываем просто постер
-                        videoContainer.innerHTML = `<img src="${post.image}" alt="${post.title}" style="width:100%;">`;
-                    }
-                    mediaElement.appendChild(videoContainer);
-                } else {
-                    // Показываем изображения из Tumblr photo post
-                    let images = [];
-
-                    if (post.photos && post.photos.length > 0) {
-                        images = post.photos.map(photo => photo.original_size.url);
-                    }
-                    else if (post.image) {
-                        images = [post.image];
-                    }
-
-                    // fallback — пробуем вытащить из caption
-                    if (images.length === 0 && (post.caption || post.body)) {
-                        const html = post.caption || post.body;
-                        images = this.extractAllImagesFromContent(html);
-                    }
-
-                    images.forEach((imgUrl) => {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.className = 'post-image';
-                        imgContainer.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy">`;
-                        mediaElement.appendChild(imgContainer);
-                    });
-                }
-            }
-
-            extractTextContent(html) {
-                if (!html) return '';
-                const text = html
-                    .replace(/<[^>]*>/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-                return text.substring(0, 500) + (text.length > 500 ? '...' : '');
-            }
-
-            extractAllImagesFromContent(content) {
-                if (!content) return [];
-                const images = [];
-                const imgRegex = /<img[^>]+src="([^">]+)"/gi;
-                let match;
-
-                while ((match = imgRegex.exec(content)) !== null) {
-                    if (match[1]) {
-                        const url = match[1].trim();
-                        if (url && !url.includes('avatar') && !url.includes('icon')) {
-                            images.push(url);
-                        }
-                    }
-                }
-                return images;
             }
 
             showError(message) {
@@ -302,7 +204,6 @@
             }
         }
 
-        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             new PostPage();
         });
