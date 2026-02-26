@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pletnyov – Post</title>
-    <link rel="stylesheet" href="../style.css">
+
     <style>
-        /* Базовый сброс */
         * {
             margin: 0;
             padding: 0;
@@ -22,21 +21,21 @@
             background: #fff;
         }
 
-        /* Трёхколоночная сетка */
+        /* ====== GRID LAYOUT ====== */
+
         .post-layout {
             display: grid;
-            grid-template-columns: minmax(300px, 1.2fr) 140px 1fr;
+            grid-template-columns: minmax(320px, 1.2fr) 140px 1fr;
             min-height: 100vh;
         }
 
-        /* Левая колонка – медиа (прокручивается со страницей) */
+        /* ====== LEFT COLUMN (MEDIA) ====== */
+
         .left-column {
+            grid-column: 1;
+            grid-row: 1 / span 3;
             padding: 40px 30px 40px 40px;
             border-right: 1px solid #eaeaea;
-        }
-
-        .post-media {
-            width: 100%;
         }
 
         .post-media img,
@@ -48,65 +47,42 @@
             margin-bottom: 30px;
         }
 
-        /* Центральная колонка – заголовки */
-        .center-column {
-            padding: 40px 20px;
-            border-right: 1px solid #eaeaea;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            /* убираем лишние отступы, управляем через padding у каждого элемента */
-        }
+        /* ====== MIDDLE COLUMN (LABELS) ====== */
 
-        .center-item {
+        .section-label {
+            grid-column: 2;
+            padding: 40px 20px 0 20px;
             font-size: 14px;
-            color: #111;
-            font-weight: 400;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            line-height: 1.5;
         }
 
-        /* Заголовок Post – выравниваем с верхней частью правого контента */
-        .center-item.post-header {
-            padding-top: 0;
-            /* будет точно напротив первого элемента правой колонки */
-            margin-bottom: 20px;
-            /* такой же отступ, как у .post-section */
-        }
+        /* ====== RIGHT COLUMN (CONTENT) ====== */
 
-        /* Заголовок Share – с отступом, соответствующим началу блока share */
-        .center-item.share-header {
-            margin-top: 30px;
-            /* соответствует отступу перед share-блоком */
-            margin-bottom: 20px;
-        }
-
-        /* Заголовок Navigation – с отступом, соответствующим началу блока navigation */
-        .center-item.nav-header {
-            margin-top: 30px;
-            margin-bottom: 20px;
-        }
-
-        /* Правая колонка – данные поста */
-        .right-column {
-            padding: 40px 30px 40px 30px;
+        .section-content {
+            grid-column: 3;
+            padding: 40px 30px 30px 30px;
             max-width: 600px;
         }
 
-        .post-section {
-            margin-bottom: 30px;
+        /* убираем лишний верхний padding у нижних строк */
+        .section-label:nth-of-type(n+3),
+        .section-content:nth-of-type(n+4) {
+            padding-top: 30px;
         }
+
+        /* ====== POST BLOCK ====== */
 
         .post-title {
             font-size: 18px;
-            /* на скриншоте заголовок поста чуть крупнее? оставим как есть */
-            font-weight: 400;
             margin-bottom: 10px;
         }
 
+        .post-description {
+            margin-bottom: 15px;
+        }
+
         .post-date {
-            color: #111;
             margin-bottom: 10px;
         }
 
@@ -114,20 +90,18 @@
             margin-bottom: 10px;
         }
 
-        .post-tags .tag {
+        .post-tags a {
             display: inline-block;
-            color: #111;
             margin-right: 15px;
             text-decoration: none;
+            color: #111;
         }
 
         .post-id {
-            color: #111;
+            margin-top: 5px;
         }
 
-        .share-section {
-            margin-bottom: 30px;
-        }
+        /* ====== SHARE ====== */
 
         .share-buttons {
             display: flex;
@@ -136,14 +110,11 @@
         }
 
         .share-buttons a {
-            color: #111;
             text-decoration: none;
-            font-size: 14px;
+            color: #111;
         }
 
-        .nav-section {
-            margin-bottom: 0;
-        }
+        /* ====== NAVIGATION ====== */
 
         .post-navigation {
             display: flex;
@@ -151,85 +122,72 @@
         }
 
         .post-navigation a {
-            color: #111;
             text-decoration: none;
-            font-size: 14px;
+            color: #111;
         }
 
-        /* Адаптивность */
-        @media (max-width: 1000px) {
-            .post-layout {
-                grid-template-columns: 1fr 120px 1fr;
-            }
-        }
+        /* ====== RESPONSIVE ====== */
 
-        @media (max-width: 800px) {
+        @media (max-width: 900px) {
+
             .post-layout {
                 grid-template-columns: 1fr;
             }
 
             .left-column {
+                grid-column: 1;
+                grid-row: auto;
                 border-right: none;
                 border-bottom: 1px solid #eaeaea;
                 padding: 30px;
             }
 
-            .center-column {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-around;
-                border-right: none;
-                border-bottom: 1px solid #eaeaea;
-                padding: 20px 30px;
+            .section-label {
+                grid-column: 1;
+                padding: 30px 30px 0 30px;
             }
 
-            .center-item {
-                margin: 0 !important;
-                padding: 0;
-            }
-
-            .right-column {
-                padding: 30px;
+            .section-content {
+                grid-column: 1;
+                padding: 15px 30px 30px 30px;
             }
         }
     </style>
 </head>
 
 <body>
+
     <div class="post-layout">
 
-        <!-- ЛЕВАЯ КОЛОНКА: Медиа -->
+        <!-- LEFT COLUMN -->
         <div class="left-column">
             <div class="post-media" id="postMedia">
-                <div style="color: #999;">Загрузка...</div>
+                <div style="color:#999;">Загрузка...</div>
             </div>
         </div>
 
-        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: Заголовки -->
-        <div class="center-column">
-            <div class="center-item post-header">Post</div>
-            <div class="center-item share-header">Share</div>
-            <div class="center-item nav-header">Navigation</div>
+        <!-- POST -->
+        <div class="section-label">Post</div>
+        <div class="section-content">
+            <div class="post-title" id="postTitle"></div>
+            <div class="post-description" id="postDescription"></div>
+            <div class="post-date" id="postDate"></div>
+            <div class="post-tags" id="postTags"></div>
+            <div class="post-id" id="postId"></div>
         </div>
 
-        <!-- ПРАВАЯ КОЛОНКА: Данные поста -->
-        <div class="right-column">
-            <div class="post-section">
-                <div class="post-title" id="postTitle"></div>
-                <div class="post-date" id="postDate"></div>
-                <div class="post-tags" id="postTags"></div>
-                <div class="post-id" id="postId"></div>
-            </div>
+        <!-- SHARE -->
+        <div class="section-label">Share</div>
+        <div class="section-content">
+            <div class="share-buttons" id="shareButtons"></div>
+        </div>
 
-            <div class="share-section">
-                <div class="share-buttons" id="shareButtons"></div>
-            </div>
-
-            <div class="nav-section">
-                <div class="post-navigation">
-                    <a href="#" id="prevPost">Предыдущее</a>
-                    <a href="#" id="nextPost">Далее</a>
-                </div>
+        <!-- NAVIGATION -->
+        <div class="section-label">Navigation</div>
+        <div class="section-content">
+            <div class="post-navigation">
+                <a href="#" id="prevPost">Предыдущее</a>
+                <a href="#" id="nextPost">Далее</a>
             </div>
         </div>
 
@@ -258,8 +216,7 @@
                     this.renderNotFound();
                     return;
                 }
-                const post = this.allPosts[currentIndex];
-                this.render(post, currentIndex);
+                this.render(this.allPosts[currentIndex], currentIndex);
             }
 
             async fetchAllPosts() {
@@ -268,7 +225,7 @@
                     const data = await res.json();
                     this.allPosts = data.response.posts || [];
                 } catch (e) {
-                    console.error('Failed to fetch posts', e);
+                    console.error(e);
                 }
             }
 
@@ -279,19 +236,11 @@
                 return div.textContent || div.innerText || '';
             }
 
-            extractMedia(html) {
-                if (!html) return [];
-                const div = document.createElement('div');
-                div.innerHTML = html;
-                return Array.from(div.querySelectorAll('img, video, iframe'));
-            }
-
             render(post, index) {
-                // Заголовок
+
                 document.getElementById('postTitle').textContent =
                     post.summary || post.title || '';
 
-                // Дата
                 if (post.date) {
                     const d = new Date(post.date);
                     document.getElementById('postDate').textContent =
@@ -302,105 +251,71 @@
                         });
                 }
 
-                // Описание (чистый текст) – здесь нет отдельного поля под описание? 
-                // На скриншоте Description идёт после заголовка. У нас заголовок уже есть.
-                // Если нужно описание, добавим как отдельный элемент.
-                // В вашем предыдущем коде был `postDescription`. Добавим его.
-                let descEl = document.getElementById('postDescription');
-                if (!descEl) {
-                    descEl = document.createElement('div');
-                    descEl.className = 'post-description';
-                    descEl.id = 'postDescription';
-                    document.querySelector('.post-section').insertBefore(descEl, document.getElementById('postDate'));
-                }
                 let descText = '';
-                if (post.caption) {
-                    descText = this.extractText(post.caption);
-                } else if (post.body) {
-                    descText = this.extractText(post.body);
-                }
-                descEl.textContent = descText;
+                if (post.caption) descText = this.extractText(post.caption);
+                else if (post.body) descText = this.extractText(post.body);
 
-                // Теги
+                document.getElementById('postDescription').textContent = descText;
+
                 if (post.tags && post.tags.length) {
                     document.getElementById('postTags').innerHTML =
                         post.tags.map(tag =>
-                            `<a href="/?filter=${encodeURIComponent(tag)}" class="tag">${tag}</a>`
+                            `<a href="/?filter=${encodeURIComponent(tag)}">${tag}</a>`
                         ).join('');
-                } else {
-                    document.getElementById('postTags').innerHTML = '';
                 }
 
-                // ID поста
-                document.getElementById('postId').textContent = `ID: ${post.id || post.id_string}`;
+                document.getElementById('postId').textContent =
+                    `ID: ${post.id || post.id_string}`;
 
-                // Медиа в левую колонку
                 const mediaContainer = document.getElementById('postMedia');
                 mediaContainer.innerHTML = '';
 
-                if (post.photos && post.photos.length) {
+                if (post.photos?.length) {
                     post.photos.forEach(photo => {
                         const img = document.createElement('img');
                         img.src = photo.original_size.url;
-                        img.alt = '';
                         mediaContainer.appendChild(img);
                     });
-                } else if (post.video_url) {
-                    const video = document.createElement('video');
-                    video.src = post.video_url;
-                    video.controls = true;
-                    video.poster = post.thumbnail_url || '';
-                    mediaContainer.appendChild(video);
-                } else if (post.body) {
-                    const mediaElements = this.extractMedia(post.body);
-                    if (mediaElements.length) {
-                        mediaElements.forEach(el => {
-                            mediaContainer.appendChild(el.cloneNode(true));
-                        });
-                    } else {
-                        mediaContainer.innerHTML = '<div style="color:#999;">Нет изображений</div>';
-                    }
                 }
 
-                // Кнопки поделиться
                 const shareUrl = encodeURIComponent(window.location.href);
-                const shareTitle = encodeURIComponent(post.summary || post.title || 'Pletnyov');
+                const shareTitle = encodeURIComponent(post.summary || post.title || '');
+
                 const shareButtons = [
                     { name: 'Facebook', url: `https://www.facebook.com/sharer.php?u=${shareUrl}` },
                     { name: 'LinkedIn', url: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` },
-                    { name: 'Pinterest', url: `https://pinterest.com/pin/create/button/?url=${shareUrl}&media=${encodeURIComponent(post.image || '')}&description=${shareTitle}` },
+                    { name: 'Pinterest', url: `https://pinterest.com/pin/create/button/?url=${shareUrl}&description=${shareTitle}` },
                     { name: 'Tumblr', url: `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${shareUrl}&title=${shareTitle}` },
                     { name: 'Twitter', url: `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}` }
                 ];
-                document.getElementById('shareButtons').innerHTML = shareButtons.map(btn =>
-                    `<a href="${btn.url}" target="_blank" rel="noopener">${btn.name}</a>`
-                ).join('');
 
-                // Навигация
-                const prevLink = document.getElementById('prevPost');
-                const nextLink = document.getElementById('nextPost');
+                document.getElementById('shareButtons').innerHTML =
+                    shareButtons.map(btn =>
+                        `<a href="${btn.url}" target="_blank" rel="noopener">${btn.name}</a>`
+                    ).join('');
+
+                const prev = document.getElementById('prevPost');
+                const next = document.getElementById('nextPost');
+
                 if (index > 0) {
                     const prevPost = this.allPosts[index - 1];
-                    prevLink.href = `/post/${prevPost.id_string || prevPost.id}`;
-                    prevLink.style.opacity = '1';
-                    prevLink.style.pointerEvents = 'auto';
+                    prev.href = `/post/${prevPost.id_string || prevPost.id}`;
                 } else {
-                    prevLink.style.opacity = '0.3';
-                    prevLink.style.pointerEvents = 'none';
+                    prev.style.opacity = '0.3';
+                    prev.style.pointerEvents = 'none';
                 }
+
                 if (index < this.allPosts.length - 1) {
                     const nextPost = this.allPosts[index + 1];
-                    nextLink.href = `/post/${nextPost.id_string || nextPost.id}`;
-                    nextLink.style.opacity = '1';
-                    nextLink.style.pointerEvents = 'auto';
+                    next.href = `/post/${nextPost.id_string || nextPost.id}`;
                 } else {
-                    nextLink.style.opacity = '0.3';
-                    nextLink.style.pointerEvents = 'none';
+                    next.style.opacity = '0.3';
+                    next.style.pointerEvents = 'none';
                 }
             }
 
             renderNotFound() {
-                document.querySelector('.right-column').innerHTML = '<h2>Пост не найден</h2><a href="/">Вернуться на главную</a>';
+                document.body.innerHTML = '<h2 style="padding:40px;">Пост не найден</h2>';
             }
         }
 
@@ -408,6 +323,7 @@
             new PostPage();
         });
     </script>
+
 </body>
 
 </html>
