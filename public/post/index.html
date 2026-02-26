@@ -4,62 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pletnyov - Post</title>
+    <title>Pletnyov – Post</title>
     <link rel="stylesheet" href="../style.css">
+
     <style>
         .post-container {
-            max-width: 1000px;
-            margin: 100px auto 50px;
+            max-width: 900px;
+            margin: 80px auto 50px;
             padding: 0 20px;
         }
-
         .post-header {
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
-
         .post-title {
             font-size: 2rem;
             font-weight: 500;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
-
         .post-meta {
-            color: #666;
             font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .post-content {
-            margin-bottom: 40px;
+            color: #555;
+            margin-bottom: 25px;
         }
 
         .post-content img {
             width: 100%;
             height: auto;
-            margin-bottom: 20px;
+            margin: 1em 0;
+            display: block;
         }
-
-        .post-content iframe {
-            width: 100%;
-            max-width: 100%;
-            margin-bottom: 20px;
-            aspect-ratio: 16 / 9;
-        }
-
+        .post-content iframe,
+        .post-content embed,
         .post-content video {
             width: 100%;
-            margin-bottom: 20px;
+            height: auto;
+            margin: 1em 0;
         }
 
         .post-tags {
-            margin: 30px 0;
+            margin-top: 30px;
         }
-
         .tag {
             display: inline-block;
             background: #f0f0f0;
-            padding: 5px 15px;
-            margin: 0 10px 10px 0;
+            padding: 5px 12px;
+            margin: 0 6px 6px 0;
             border-radius: 3px;
             font-size: 0.9rem;
         }
@@ -67,13 +56,12 @@
         .back-link {
             display: inline-block;
             margin-top: 40px;
-            color: #000;
-            text-decoration: none;
             font-size: 0.9rem;
+            text-decoration: none;
+            color: #000;
             border-bottom: 1px solid transparent;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s;
         }
-
         .back-link:hover {
             border-bottom-color: #000;
         }
@@ -81,32 +69,24 @@
 </head>
 
 <body>
+
     <header>
         <div class="header-content">
-            <div class="header-left">
-                <a href="/" class="site-title">Pletnyov</a>
-            </div>
-            <div class="header-right">
-                <a href="/" class="back-link">← Back to Gallery</a>
-            </div>
+            <a href="/" class="back-link">← Back to Gallery</a>
         </div>
     </header>
 
-    <main>
-        <div class="post-container">
-            <div class="post-header">
-                <h1 class="post-title" id="postTitle">Loading post...</h1>
-                <div class="post-meta" id="postMeta"></div>
-            </div>
-
-            <div class="post-content" id="postContent">
-                Loading content...
-            </div>
-
-            <div class="post-tags" id="postTags"></div>
-
-            <a href="/" class="back-link">← Back to Gallery</a>
+    <main class="post-container">
+        <div class="post-header">
+            <h1 class="post-title" id="postTitle">Loading…</h1>
+            <div class="post-meta" id="postMeta"></div>
         </div>
+
+        <article class="post-content" id="postContent">
+            Loading content…
+        </article>
+
+        <div class="post-tags" id="postTags"></div>
     </main>
 
     <script>
@@ -117,13 +97,13 @@
             }
 
             getPostIdFromUrl() {
-                const pathParts = window.location.pathname.split('/');
-                return pathParts[pathParts.length - 1];
+                const parts = window.location.pathname.split('/');
+                return parts[parts.length - 1];
             }
 
             async init() {
                 if (!this.postId) {
-                    this.showError('Post ID not found in URL');
+                    this.showError('Post ID not found');
                     return;
                 }
                 await this.loadPost();
@@ -136,68 +116,62 @@
                         p => String(p.id) === this.postId || p.id_string === this.postId
                     );
 
-                    console.log("FOUND POST:", post);
-
                     if (!post) {
                         this.showError('Post not found');
                         return;
                     }
-
-                    this.displayPost(post);
-                } catch (error) {
-                    console.error('Error loading post:', error);
+                    this.renderPost(post);
+                } catch (err) {
+                    console.error(err);
                     this.showError('Failed to load post');
                 }
             }
 
             async fetchPosts() {
-                const response = await fetch('/api/tumblr');
-                if (!response.ok) throw new Error('API request failed');
-                const data = await response.json();
+                const res = await fetch('/api/tumblr');
+                if (!res.ok) throw new Error('API request failed');
+                const data = await res.json();
                 return data.response.posts || [];
             }
 
-            displayPost(post) {
+            renderPost(post) {
                 // Заголовок
-                document.getElementById('postTitle').textContent =
-                    post.summary || post.title || 'Untitled Work';
+                document.getElementById('postTitle').textContent = post.summary || post.title || '';
 
                 // Дата
-                const dateElement = document.getElementById('postMeta');
+                const meta = document.getElementById('postMeta');
                 if (post.date) {
-                    const date = new Date(post.date);
-                    dateElement.textContent = date.toLocaleDateString('ru-RU', {
-                        year: 'numeric',
+                    const d = new Date(post.date);
+                    meta.textContent = d.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        year: 'numeric'
                     });
                 }
 
-                // Основной контент (КЛЮЧЕВОЕ ИЗМЕНЕНИЕ)
-                const contentElement = document.getElementById('postContent');
-                contentElement.innerHTML = '';
+                // Основной HTML контент
+                const contentEl = document.getElementById('postContent');
+                contentEl.innerHTML = '';
 
                 if (post.format === "html" && post.body) {
-                    contentElement.innerHTML = post.body;
+                    contentEl.innerHTML = post.body;
                 } else if (post.caption) {
-                    contentElement.innerHTML = post.caption;
-                } else {
-                    contentElement.innerHTML = "<p>No content available.</p>";
+                    contentEl.innerHTML = post.caption;
                 }
 
                 // Теги
-                const tagsElement = document.getElementById('postTags');
-                if (post.tags && post.tags.length > 0) {
-                    tagsElement.innerHTML = post.tags.map(tag =>
+                const tagsEl = document.getElementById('postTags');
+                if (post.tags && post.tags.length) {
+                    tagsEl.innerHTML = post.tags.map(tag =>
                         `<span class="tag">#${tag}</span>`
                     ).join('');
                 }
             }
 
-            showError(message) {
-                document.querySelector('.post-container').innerHTML = `
-                    <div style="text-align: center; padding: 100px 20px;">
-                        <h2 style="margin-bottom: 20px;">${message}</h2>
+            showError(msg) {
+                document.body.innerHTML = `
+                    <div style="padding:60px; text-align:center;">
+                        <h2>${msg}</h2>
                         <a href="/" class="back-link">← Back to Gallery</a>
                     </div>
                 `;
@@ -208,6 +182,7 @@
             new PostPage();
         });
     </script>
+
 </body>
 
 </html>
