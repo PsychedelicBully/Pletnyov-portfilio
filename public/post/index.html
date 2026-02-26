@@ -16,6 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
             line-height: 1.5;
             color: #111;
             background: #fff;
@@ -28,14 +29,10 @@
             min-height: 100vh;
         }
 
-        /* Левая колонка – медиа */
+        /* Левая колонка – медиа (прокручивается со страницей) */
         .left-column {
             padding: 40px 30px 40px 40px;
             border-right: 1px solid #eaeaea;
-            overflow-y: auto;
-            max-height: 100vh;
-            position: sticky;
-            top: 0;
         }
 
         .post-media {
@@ -55,23 +52,40 @@
         .center-column {
             padding: 40px 20px;
             border-right: 1px solid #eaeaea;
-            font-size: 14px;
-            font-weight: 400;
-            color: #777;
-            line-height: 1.8;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            /* убираем лишние отступы, управляем через padding у каждого элемента */
         }
 
-        .center-column h2 {
+        .center-item {
             font-size: 14px;
+            color: #111;
             font-weight: 400;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 20px;
-            color: #111;
+            line-height: 1.5;
         }
 
-        .center-column h2:not(:first-child) {
-            margin-top: 40px;
+        /* Заголовок Post – выравниваем с верхней частью правого контента */
+        .center-item.post-header {
+            padding-top: 0;
+            /* будет точно напротив первого элемента правой колонки */
+            margin-bottom: 20px;
+            /* такой же отступ, как у .post-section */
+        }
+
+        /* Заголовок Share – с отступом, соответствующим началу блока share */
+        .center-item.share-header {
+            margin-top: 30px;
+            /* соответствует отступу перед share-блоком */
+            margin-bottom: 20px;
+        }
+
+        /* Заголовок Navigation – с отступом, соответствующим началу блока navigation */
+        .center-item.nav-header {
+            margin-top: 30px;
+            margin-bottom: 20px;
         }
 
         /* Правая колонка – данные поста */
@@ -80,99 +94,66 @@
             max-width: 600px;
         }
 
+        .post-section {
+            margin-bottom: 30px;
+        }
+
         .post-title {
-            font-size: 28px;
-            font-weight: 500;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            letter-spacing: -0.01em;
+            font-size: 18px;
+            /* на скриншоте заголовок поста чуть крупнее? оставим как есть */
+            font-weight: 400;
+            margin-bottom: 10px;
         }
 
         .post-date {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eaeaea;
-            padding-bottom: 20px;
-        }
-
-        .post-description {
-            font-size: 16px;
-            margin-bottom: 30px;
-            color: #333;
-        }
-
-        .post-description p {
-            margin-bottom: 1em;
+            color: #111;
+            margin-bottom: 10px;
         }
 
         .post-tags {
-            margin-bottom: 30px;
-            border-top: 1px solid #eaeaea;
-            padding-top: 30px;
+            margin-bottom: 10px;
         }
 
         .post-tags .tag {
             display: inline-block;
-            font-size: 13px;
-            color: #777;
+            color: #111;
             margin-right: 15px;
-            margin-bottom: 8px;
             text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-
-        .post-tags .tag:hover {
-            border-bottom-color: #777;
         }
 
         .post-id {
-            font-size: 12px;
-            color: #aaa;
+            color: #111;
+        }
+
+        .share-section {
             margin-bottom: 30px;
         }
 
-        /* Кнопки поделиться */
         .share-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
-            margin-bottom: 40px;
-            border-top: 1px solid #eaeaea;
-            padding-top: 30px;
         }
 
         .share-buttons a {
-            font-size: 14px;
             color: #111;
             text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
+            font-size: 14px;
         }
 
-        .share-buttons a:hover {
-            border-bottom-color: #111;
+        .nav-section {
+            margin-bottom: 0;
         }
 
-        /* Навигация предыдущий/следующий */
         .post-navigation {
             display: flex;
             gap: 30px;
-            border-top: 1px solid #eaeaea;
-            padding-top: 30px;
-            font-size: 14px;
         }
 
         .post-navigation a {
             color: #111;
             text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-
-        .post-navigation a:hover {
-            border-bottom-color: #111;
+            font-size: 14px;
         }
 
         /* Адаптивность */
@@ -188,8 +169,6 @@
             }
 
             .left-column {
-                position: relative;
-                max-height: none;
                 border-right: none;
                 border-bottom: 1px solid #eaeaea;
                 padding: 30px;
@@ -197,15 +176,16 @@
 
             .center-column {
                 display: flex;
-                gap: 40px;
-                justify-content: center;
+                flex-direction: row;
+                justify-content: space-around;
                 border-right: none;
                 border-bottom: 1px solid #eaeaea;
                 padding: 20px 30px;
             }
 
-            .center-column h2 {
-                margin: 0;
+            .center-item {
+                margin: 0 !important;
+                padding: 0;
             }
 
             .right-column {
@@ -218,35 +198,38 @@
 <body>
     <div class="post-layout">
 
-        <!-- ЛЕВАЯ КОЛОНКА: Медиа (изображения, видео, iframe) -->
+        <!-- ЛЕВАЯ КОЛОНКА: Медиа -->
         <div class="left-column">
             <div class="post-media" id="postMedia">
-                <div style="color: #999; text-align: center;">Загрузка...</div>
+                <div style="color: #999;">Загрузка...</div>
             </div>
         </div>
 
         <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: Заголовки -->
         <div class="center-column">
-            <h2>Post</h2>
-            <h2>Share</h2>
-            <h2>Navigation</h2>
+            <div class="center-item post-header">Post</div>
+            <div class="center-item share-header">Share</div>
+            <div class="center-item nav-header">Navigation</div>
         </div>
 
         <!-- ПРАВАЯ КОЛОНКА: Данные поста -->
         <div class="right-column">
-            <div class="post-title" id="postTitle"></div>
-            <div class="post-date" id="postDate"></div>
-            <div class="post-description" id="postDescription"></div>
-            <div class="post-tags" id="postTags"></div>
-            <div class="post-id" id="postId"></div>
-
-            <div class="share-buttons" id="shareButtons">
-                <!-- будут заполнены скриптом -->
+            <div class="post-section">
+                <div class="post-title" id="postTitle"></div>
+                <div class="post-date" id="postDate"></div>
+                <div class="post-tags" id="postTags"></div>
+                <div class="post-id" id="postId"></div>
             </div>
 
-            <div class="post-navigation">
-                <a href="#" id="prevPost">← Предыдущее</a>
-                <a href="#" id="nextPost">Следующее →</a>
+            <div class="share-section">
+                <div class="share-buttons" id="shareButtons"></div>
+            </div>
+
+            <div class="nav-section">
+                <div class="post-navigation">
+                    <a href="#" id="prevPost">Предыдущее</a>
+                    <a href="#" id="nextPost">Далее</a>
+                </div>
             </div>
         </div>
 
@@ -256,7 +239,7 @@
         class PostPage {
             constructor() {
                 this.postId = this.getPostId();
-                this.allPosts = []; // будем хранить все посты для навигации
+                this.allPosts = [];
                 this.init();
             }
 
@@ -289,7 +272,6 @@
                 }
             }
 
-            // Извлечение только текста из HTML (без тегов)
             extractText(html) {
                 if (!html) return '';
                 const div = document.createElement('div');
@@ -297,7 +279,6 @@
                 return div.textContent || div.innerText || '';
             }
 
-            // Извлечение медиа-элементов из HTML (img, video, iframe)
             extractMedia(html) {
                 if (!html) return [];
                 const div = document.createElement('div');
@@ -321,20 +302,30 @@
                         });
                 }
 
-                // Описание – только текст, без HTML-тегов
+                // Описание (чистый текст) – здесь нет отдельного поля под описание? 
+                // На скриншоте Description идёт после заголовка. У нас заголовок уже есть.
+                // Если нужно описание, добавим как отдельный элемент.
+                // В вашем предыдущем коде был `postDescription`. Добавим его.
+                let descEl = document.getElementById('postDescription');
+                if (!descEl) {
+                    descEl = document.createElement('div');
+                    descEl.className = 'post-description';
+                    descEl.id = 'postDescription';
+                    document.querySelector('.post-section').insertBefore(descEl, document.getElementById('postDate'));
+                }
                 let descText = '';
                 if (post.caption) {
                     descText = this.extractText(post.caption);
                 } else if (post.body) {
                     descText = this.extractText(post.body);
                 }
-                document.getElementById('postDescription').textContent = descText;
+                descEl.textContent = descText;
 
                 // Теги
                 if (post.tags && post.tags.length) {
                     document.getElementById('postTags').innerHTML =
                         post.tags.map(tag =>
-                            `<a href="/?filter=${encodeURIComponent(tag)}" class="tag">#${tag}</a>`
+                            `<a href="/?filter=${encodeURIComponent(tag)}" class="tag">${tag}</a>`
                         ).join('');
                 } else {
                     document.getElementById('postTags').innerHTML = '';
@@ -343,11 +334,10 @@
                 // ID поста
                 document.getElementById('postId').textContent = `ID: ${post.id || post.id_string}`;
 
-                // --- Медиа в левую колонку ---
+                // Медиа в левую колонку
                 const mediaContainer = document.getElementById('postMedia');
                 mediaContainer.innerHTML = '';
 
-                // 1. Если это фото-пост с photos
                 if (post.photos && post.photos.length) {
                     post.photos.forEach(photo => {
                         const img = document.createElement('img');
@@ -355,30 +345,24 @@
                         img.alt = '';
                         mediaContainer.appendChild(img);
                     });
-                }
-                // 2. Если это видео-пост с video_url
-                else if (post.video_url) {
+                } else if (post.video_url) {
                     const video = document.createElement('video');
                     video.src = post.video_url;
                     video.controls = true;
                     video.poster = post.thumbnail_url || '';
                     mediaContainer.appendChild(video);
-                }
-                // 3. Если это текстовый пост с HTML, извлекаем все медиа
-                else if (post.body) {
+                } else if (post.body) {
                     const mediaElements = this.extractMedia(post.body);
                     if (mediaElements.length) {
                         mediaElements.forEach(el => {
-                            // Клонируем, чтобы сохранить все атрибуты
                             mediaContainer.appendChild(el.cloneNode(true));
                         });
                     } else {
-                        // Если нет медиа, показываем заглушку
                         mediaContainer.innerHTML = '<div style="color:#999;">Нет изображений</div>';
                     }
                 }
 
-                // --- Кнопки поделиться ---
+                // Кнопки поделиться
                 const shareUrl = encodeURIComponent(window.location.href);
                 const shareTitle = encodeURIComponent(post.summary || post.title || 'Pletnyov');
                 const shareButtons = [
@@ -388,17 +372,18 @@
                     { name: 'Tumblr', url: `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${shareUrl}&title=${shareTitle}` },
                     { name: 'Twitter', url: `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}` }
                 ];
-                const shareContainer = document.getElementById('shareButtons');
-                shareContainer.innerHTML = shareButtons.map(btn =>
+                document.getElementById('shareButtons').innerHTML = shareButtons.map(btn =>
                     `<a href="${btn.url}" target="_blank" rel="noopener">${btn.name}</a>`
                 ).join('');
 
-                // --- Навигация предыдущий/следующий ---
+                // Навигация
                 const prevLink = document.getElementById('prevPost');
                 const nextLink = document.getElementById('nextPost');
                 if (index > 0) {
                     const prevPost = this.allPosts[index - 1];
                     prevLink.href = `/post/${prevPost.id_string || prevPost.id}`;
+                    prevLink.style.opacity = '1';
+                    prevLink.style.pointerEvents = 'auto';
                 } else {
                     prevLink.style.opacity = '0.3';
                     prevLink.style.pointerEvents = 'none';
@@ -406,6 +391,8 @@
                 if (index < this.allPosts.length - 1) {
                     const nextPost = this.allPosts[index + 1];
                     nextLink.href = `/post/${nextPost.id_string || nextPost.id}`;
+                    nextLink.style.opacity = '1';
+                    nextLink.style.pointerEvents = 'auto';
                 } else {
                     nextLink.style.opacity = '0.3';
                     nextLink.style.pointerEvents = 'none';
