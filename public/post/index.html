@@ -252,8 +252,9 @@
                     }
 
                     // fallback — пробуем вытащить из caption
-                    if (images.length === 0 && post.caption) {
-                        images = this.extractAllImagesFromContent(post.caption);
+                    if (images.length === 0 && (post.caption || post.body)) {
+                        const html = post.caption || post.body;
+                        images = this.extractAllImagesFromContent(html);
                     }
 
                     images.forEach((imgUrl) => {
