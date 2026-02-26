@@ -71,6 +71,38 @@
             grid-template-columns: repeat(3, 1fr);
             column-gap: 60px;
         }
+
+        .rainbow span:nth-child(1) {
+            color: #ff0000;
+        }
+
+        .rainbow span:nth-child(2) {
+            color: #ff7f00;
+        }
+
+        .rainbow span:nth-child(3) {
+            color: #ffff00;
+        }
+
+        .rainbow span:nth-child(4) {
+            color: #00ff00;
+        }
+
+        .rainbow span:nth-child(5) {
+            color: #00bfff;
+        }
+
+        .rainbow span:nth-child(6) {
+            color: #0000ff;
+        }
+
+        .rainbow span:nth-child(7) {
+            color: #8b00ff;
+        }
+
+        .rainbow span:nth-child(8) {
+            color: #ff1493;
+        }
     </style>
 </head>
 
@@ -163,9 +195,47 @@
             });
 
             bottomOrder.forEach(group => {
-                const div = createGroup(group, GROUPS[group]);
-                bottom.appendChild(div);
+
+                if (group === "Touch me") {
+                    bottom.appendChild(createContactGroup());
+                } else {
+                    bottom.appendChild(createGroup(group, GROUPS[group]));
+                }
+
             });
+        }
+
+        function createContactGroup() {
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "group";
+
+            const heading = document.createElement("div");
+            heading.className = "group-title rainbow";
+            heading.innerHTML = "Touch me"
+                .split("")
+                .map(letter => `<span>${letter}</span>`)
+                .join("");
+            wrapper.appendChild(heading);
+
+            const ig = document.createElement("a");
+            ig.href = "https://instagram.com/твой_профиль";
+            ig.target = "_blank";
+            ig.textContent = "instagram";
+            wrapper.appendChild(ig);
+
+            const mail = document.createElement("a");
+            mail.href = "mailto:schnaider.anton@gmail.com";
+            mail.textContent = "schnaider.anton@gmail.com";
+            wrapper.appendChild(mail);
+
+            const tg = document.createElement("a");
+            tg.href = "https://t.me/твой_username";  // ← вставь сюда свой username
+            tg.target = "_blank";
+            tg.textContent = "telegram";
+            wrapper.appendChild(tg);
+
+            return wrapper;
         }
 
         function createGroup(title, items) {
