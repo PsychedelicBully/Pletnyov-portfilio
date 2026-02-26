@@ -262,21 +262,57 @@
                         post.tags.map(tag =>
                             `<a href="/?filter=${encodeURIComponent(tag)}">${tag}</a>`
                         ).join('');
+                } else {
+                    document.getElementById('postTags').innerHTML = '';
                 }
 
                 document.getElementById('postId').textContent =
                     `ID: ${post.id || post.id_string}`;
 
+                /* ===== MEDIA BLOCK (ВОССТАНОВЛЕНО) ===== */
+
                 const mediaContainer = document.getElementById('postMedia');
                 mediaContainer.innerHTML = '';
 
-                if (post.photos?.length) {
+                // 1. Фото Tumblr
+                if (post.photos && post.photos.length) {
                     post.photos.forEach(photo => {
                         const img = document.createElement('img');
                         img.src = photo.original_size.url;
+                        img.alt = '';
                         mediaContainer.appendChild(img);
                     });
                 }
+
+                // 2. Видео Tumblr
+                else if (post.video_url) {
+                    const video = document.createElement('video');
+                    video.src = post.video_url;
+                    video.controls = true;
+                    video.poster = post.thumbnail_url || '';
+                    video.style.width = '100%';
+                    mediaContainer.appendChild(video);
+                }
+
+                // 3. Медиа внутри body (iframe, img, video)
+                else if (post.body) {
+                    const div = document.createElement('div');
+                    div.innerHTML = post.body;
+
+                    const mediaElements = div.querySelectorAll('img, video, iframe');
+
+                    if (mediaElements.length) {
+                        mediaElements.forEach(el => {
+                            el.style.width = '100%';
+                            el.style.height = 'auto';
+                            mediaContainer.appendChild(el.cloneNode(true));
+                        });
+                    } else {
+                        mediaContainer.innerHTML = '<div style="color:#999;">Нет изображений</div>';
+                    }
+                }
+
+                /* ===== SHARE ===== */
 
                 const shareUrl = encodeURIComponent(window.location.href);
                 const shareTitle = encodeURIComponent(post.summary || post.title || '');
@@ -294,12 +330,16 @@
                         `<a href="${btn.url}" target="_blank" rel="noopener">${btn.name}</a>`
                     ).join('');
 
+                /* ===== NAVIGATION ===== */
+
                 const prev = document.getElementById('prevPost');
                 const next = document.getElementById('nextPost');
 
                 if (index > 0) {
                     const prevPost = this.allPosts[index - 1];
                     prev.href = `/post/${prevPost.id_string || prevPost.id}`;
+                    prev.style.opacity = '1';
+                    prev.style.pointerEvents = 'auto';
                 } else {
                     prev.style.opacity = '0.3';
                     prev.style.pointerEvents = 'none';
@@ -308,6 +348,8 @@
                 if (index < this.allPosts.length - 1) {
                     const nextPost = this.allPosts[index + 1];
                     next.href = `/post/${nextPost.id_string || nextPost.id}`;
+                    next.style.opacity = '1';
+                    next.style.pointerEvents = 'auto';
                 } else {
                     next.style.opacity = '0.3';
                     next.style.pointerEvents = 'none';
