@@ -503,11 +503,11 @@ footer {
     border: 0;
 }
 
-/* === Единая типографика === */
+/* === Единая типографика (меняет только фильтры))) === */
 body {
     font-family: Arial, Helvetica, sans-serif !important;
     /* Принудительно Arial */
-    font-size: 20px;
+    font-size: 18px;
     /* Единый базовый размер */
     color: #111;
     line-height: 1.5;
