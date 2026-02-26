@@ -152,9 +152,11 @@
 
             async loadPost() {
                 try {
-                    // Загружаем все посты и находим нужный
                     const posts = await this.fetchPosts();
-                    const post = posts.find(p => p.id_string === this.postId);
+                    const post = posts.find(p => p.id === this.postId);
+
+                    console.log("ALL POSTS:", posts);
+                    console.log("FOUND POST:", post);
 
                     if (post) {
                         this.displayPost(post);
