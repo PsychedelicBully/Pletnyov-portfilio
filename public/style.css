@@ -670,9 +670,10 @@ main,
     max-width: 1400px;
     margin: 80px auto;
     padding: 0 2rem;
+    word-break: break-word;
 }
 
-/* 6 колонок — как было */
+/* 6 колонок */
 .filters-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -692,24 +693,18 @@ main,
     margin-bottom: 10px;
 }
 
-/* 🔥 ВАЖНО — ссылки в колонках идут вертикально */
+/* ссылки в колонках */
 .filters-wrapper a {
     display: block;
     width: fit-content;
     margin-bottom: 6px;
-}
-
-/* перенос длинных слов */
-.filters-wrapper {
-    word-break: break-word;
-}
-
-/* короткое аккуратное подчёркивание */
-.filters-wrapper a {
     text-decoration: none;
-    border-bottom: 1px solid #111;
+    /* убираем стандартное */
+    border-bottom: none;
+    /* убираем постоянную линию */
 }
 
+/* подчёркивание только при наведении */
 .filters-wrapper a:hover {
-    opacity: 0.6;
+    border-bottom: 1px solid #111;
 }
