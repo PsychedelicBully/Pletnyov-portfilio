@@ -668,16 +668,15 @@ main,
 
 @media (max-width: 768px) {
 
+    /* === FIX ALIGNMENT ONLY (без изменения grid) === */
+
     .filters-wrapper {
-        margin: 120px auto;
+        max-width: 1400px;
+        /* как в header-content */
+        margin: 80px auto;
+        /* центрирование + отступ сверху */
+        padding: 0 2rem;
+        /* такие же боковые отступы */
     }
 
-    .filters-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .bottom-row {
-        grid-template-columns: 1fr;
-        row-gap: 40px;
-    }
 }
