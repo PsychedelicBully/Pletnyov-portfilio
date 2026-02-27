@@ -157,6 +157,46 @@
                 padding: 15px 30px 30px 30px;
             }
         }
+
+        /* ====== PATCH: FLEX-КОЛОНКИ ДЛЯ LABEL + CONTENT ====== */
+
+        /* Объединяем label + content в flex-контейнер */
+        .post-layout>.section-label+.section-content {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            /* верхнее выравнивание */
+            gap: 25px;
+            /* горизонтальный отступ между колонками, можно варьировать */
+        }
+
+        /* Фиксированная ширина для label */
+        .post-layout>.section-label+.section-content>.section-label {
+            flex: 0 0 140px;
+            /* ширина label */
+        }
+
+        /* Контент занимает оставшееся пространство */
+        .post-layout>.section-label+.section-content>.section-content {
+            flex: 1 1 auto;
+            height: auto;
+            /* адаптивная высота */
+        }
+
+        /* Мобильная версия */
+        @media (max-width: 900px) {
+            .post-layout>.section-label+.section-content {
+                flex-direction: column;
+                gap: 10px;
+                /* меньше отступ на мобильных */
+            }
+
+            .post-layout>.section-label+.section-content>.section-label,
+            .post-layout>.section-label+.section-content>.section-content {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
