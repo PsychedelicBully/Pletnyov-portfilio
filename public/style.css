@@ -722,7 +722,7 @@ main,
     display: block;
 
     opacity: 0;
-    transform: scale(1.03);
+    transform: scale(3.03);
     transition: opacity 0.8s ease, transform 1s ease;
 }
 
