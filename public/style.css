@@ -731,7 +731,7 @@ main,
     opacity: 1;
     image-rendering: pixelated;
     /* сохраняем крупные пиксели */
-    filter: contrast(1.5) brightness(1.2) saturate(1.2);
+    filter: contrast(3.5) brightness(0.2) saturate(0.2);
 }
 
 /* Когда основное изображение/видео загрузилось */
