@@ -528,14 +528,12 @@ h3,
 
 /* подчёркивания*/
 .group a {
-    display: block;
+    display: inline-block;
     text-decoration: none;
-    color: #000;
-    line-height: 1.6;
 }
 
 .group a:hover {
-    text-decoration: underline;
+    border-bottom: 1px solid #111;
 }
 
 /* Убираем лишние подчёркивания у некоторых элементов, если они были */
