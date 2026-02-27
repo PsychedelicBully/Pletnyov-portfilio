@@ -526,19 +526,7 @@ h3,
     letter-spacing: normal;
 }
 
-/* Ссылки — подчёркивание при наведении */
-.group a {
-    display: inline-block;
-    text-decoration: none;
-}
 
-.group a:hover {
-    border-bottom: 1px solid #111;
-}
-
-a:hover {
-    border-bottom: 1px solid #111;
-}
 
 /* Убираем лишние подчёркивания у некоторых элементов, если они были */
 .nav-link:hover,
