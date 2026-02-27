@@ -26,9 +26,8 @@ header {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid #f0f0f0;
+    background: rgba(255, 255, 255, 0.382);
+    backdrop-filter: blur(30px);
     padding: 1rem 0;
 }
 
