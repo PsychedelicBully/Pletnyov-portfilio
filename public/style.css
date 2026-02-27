@@ -672,6 +672,7 @@ main,
     padding: 0 2rem;
 }
 
+/* 6 колонок — как было */
 .filters-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -691,10 +692,24 @@ main,
     margin-bottom: 10px;
 }
 
+/* 🔥 ВАЖНО — ссылки в колонках идут вертикально */
 .filters-wrapper a {
-    display: inline-block;
+    display: block;
+    width: fit-content;
+    margin-bottom: 6px;
+}
+
+/* перенос длинных слов */
+.filters-wrapper {
+    word-break: break-word;
+}
+
+/* короткое аккуратное подчёркивание */
+.filters-wrapper a {
+    text-decoration: none;
+    border-bottom: 1px solid #111;
 }
 
 .filters-wrapper a:hover {
-    border-bottom: 1px solid #111;
+    opacity: 0.6;
 }
