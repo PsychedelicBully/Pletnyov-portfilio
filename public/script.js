@@ -521,8 +521,8 @@ class PortfolioGallery {
 
                 const loaded = () => {
                     container.classList.add('loaded');
-                    // Убираем canvas через 0.5s для плавного перехода
-                    if (placeholder) setTimeout(() => placeholder.remove(), 500);
+                    // Убираем canvas через плавный fade
+                    if (placeholder) setTimeout(() => placeholder.remove(), 600);
                 };
 
                 if (media.tagName === 'IMG') media.onload = loaded;
@@ -539,24 +539,37 @@ class PortfolioGallery {
     createBitmapPlaceholder(mediaEl) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const width = 40; // маленькое разрешение для битмапа
-        const height = 40;
+
+        // Меньшее разрешение → пиксели крупнее
+        const width = 32;
+        const height = 32;
 
         canvas.width = width;
         canvas.height = height;
 
-        // Когда изображение загрузится
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = mediaEl.dataset.src;
 
         img.onload = () => {
-            // Рисуем уменьшенное изображение на canvas
+            // Рисуем уменьшенное изображение
             ctx.drawImage(img, 0, 0, width, height);
-            // Можно усилить эффект "pixel art"
-            ctx.imageSmoothingEnabled = false;
 
-            // Вставляем canvas перед mediaEl
+            // Усиление контраста / posterize эффект
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Усиление контраста
+                data[i] = data[i] < 128 ? 0 : 255;     // R
+                data[i + 1] = data[i + 1] < 128 ? 0 : 255; // G
+                data[i + 2] = data[i + 2] < 128 ? 0 : 255; // B
+                // Alpha оставляем как есть
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+
+            // Вставляем canvas перед media
             mediaEl.parentNode.insertBefore(canvas, mediaEl);
         };
 

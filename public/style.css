@@ -722,14 +722,16 @@ main,
     display: block;
 
     opacity: 0;
-    transform: scale(3.03);
+    transform: scale(1.03);
     transition: opacity 0.8s ease, transform 1s ease;
 }
 
 /* Bitmap placeholder виден сразу */
 .media-item canvas {
     opacity: 1;
-    filter: contrast(1.2) brightness(1.1);
+    image-rendering: pixelated;
+    /* сохраняем крупные пиксели */
+    filter: contrast(1.5) brightness(1.2) saturate(1.2);
 }
 
 /* Когда основное изображение/видео загрузилось */
@@ -741,4 +743,5 @@ main,
 
 .media-item.loaded canvas {
     opacity: 0;
+    transition: opacity 0.6s ease;
 }
