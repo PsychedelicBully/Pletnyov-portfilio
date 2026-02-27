@@ -664,19 +664,37 @@ main,
     color: #ff1493;
 }
 
-/* Mobile */
+/* ================= FILTERS PAGE ================= */
 
-@media (max-width: 768px) {
+.filters-wrapper {
+    max-width: 1400px;
+    margin: 80px auto;
+    padding: 0 2rem;
+}
 
-    /* === FIX ALIGNMENT ONLY (без изменения grid) === */
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    column-gap: 20px;
+    row-gap: 40px;
+}
 
-    .filters-wrapper {
-        max-width: 1400px;
-        /* как в header-content */
-        margin: 80px auto;
-        /* центрирование + отступ сверху */
-        padding: 0 2rem;
-        /* такие же боковые отступы */
-    }
+.bottom-row {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 20px;
+}
 
+.group-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.filters-wrapper a {
+    display: inline-block;
+}
+
+.filters-wrapper a:hover {
+    border-bottom: 1px solid #111;
 }
