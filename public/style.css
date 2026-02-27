@@ -526,7 +526,17 @@ h3,
     letter-spacing: normal;
 }
 
+/* подчёркивания*/
+.group a {
+    display: block;
+    text-decoration: none;
+    color: #000;
+    line-height: 1.6;
+}
 
+.group a:hover {
+    text-decoration: underline;
+}
 
 /* Убираем лишние подчёркивания у некоторых элементов, если они были */
 .nav-link:hover,
