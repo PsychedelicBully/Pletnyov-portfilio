@@ -75,60 +75,6 @@
 
     <script src="./script.js"></script>
 
-    <!-- ===== Lazy Loading Script ===== -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-
-                    if (!entry.isIntersecting) return;
-
-                    const container = entry.target;
-                    const media = container.querySelector("img, video");
-
-                    if (media.dataset.src) {
-                        media.src = media.dataset.src;
-                    }
-
-                    if (media.tagName === "VIDEO") {
-                        media.load();
-                    }
-
-                    const loadedHandler = () => {
-                        container.classList.add("loaded");
-                    };
-
-                    if (media.tagName === "IMG") {
-                        media.onload = loadedHandler;
-                    } else {
-                        media.onloadeddata = loadedHandler;
-                    }
-
-                    obs.unobserve(container);
-                });
-            }, {
-                rootMargin: "150px"
-            });
-
-            function observeMedia() {
-                const mediaItems = document.querySelectorAll(".media-item");
-                mediaItems.forEach(item => observer.observe(item));
-            }
-
-            // Наблюдаем за галереей и автоматически подключаем новые элементы
-            const gallery = document.getElementById("gallery");
-
-            const galleryObserver = new MutationObserver(() => {
-                observeMedia();
-            });
-
-            galleryObserver.observe(gallery, { childList: true, subtree: true });
-
-            observeMedia();
-        });
-    </script>
-
 </body>
 
 </html>
