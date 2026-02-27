@@ -526,13 +526,14 @@ h3,
     letter-spacing: normal;
 }
 
-/* подчёркивания*/
-.group a {
-    display: inline-block;
+/* Ссылки — подчёркивание при наведении */
+a {
     text-decoration: none;
+    color: #111;
+    transition: border-bottom 0.2s ease;
 }
 
-.group a:hover {
+a:hover {
     border-bottom: 1px solid #111;
 }
 
@@ -589,4 +590,94 @@ main,
 
 .section-content {
     padding: 40px 30px 30px 30px;
+}
+
+/* ================= FILTERS PAGE ================= */
+
+.filters-wrapper {
+    max-width: 1400px;
+    margin: 80px auto;
+    padding: 0 2rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    column-gap: 20px;
+    row-gap: 40px;
+}
+
+.bottom-row {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 20px;
+}
+
+.group-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Убираем двойное подчёркивание */
+.filters-wrapper a {
+    display: inline-block;
+    text-decoration: none !important;
+    border-bottom: none;
+}
+
+/* Короткое аккуратное подчёркивание */
+.filters-wrapper a:hover {
+    border-bottom: 1px solid #111;
+}
+
+/* Радужный заголовок */
+.rainbow span:nth-child(1) {
+    color: #ff0000;
+}
+
+.rainbow span:nth-child(2) {
+    color: #ff7f00;
+}
+
+.rainbow span:nth-child(3) {
+    color: #ffff00;
+}
+
+.rainbow span:nth-child(4) {
+    color: #00ff00;
+}
+
+.rainbow span:nth-child(5) {
+    color: #00bfff;
+}
+
+.rainbow span:nth-child(6) {
+    color: #0000ff;
+}
+
+.rainbow span:nth-child(7) {
+    color: #8b00ff;
+}
+
+.rainbow span:nth-child(8) {
+    color: #ff1493;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+    .filters-wrapper {
+        margin: 120px auto;
+    }
+
+    .filters-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bottom-row {
+        grid-template-columns: 1fr;
+        row-gap: 40px;
+    }
 }
