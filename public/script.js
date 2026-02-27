@@ -507,8 +507,10 @@ class PortfolioGallery {
 
                 const container = entry.target;
                 const media = container.querySelector('img, video');
-
                 if (!media || !media.dataset.src) return;
+
+                // Создаём bitmap placeholder
+                const placeholder = this.createBitmapPlaceholder(media);
 
                 media.src = media.dataset.src;
 
@@ -519,19 +521,46 @@ class PortfolioGallery {
 
                 const loaded = () => {
                     container.classList.add('loaded');
+                    // Убираем canvas через 0.5s для плавного перехода
+                    if (placeholder) setTimeout(() => placeholder.remove(), 500);
                 };
 
-                if (media.tagName === 'IMG') {
-                    media.onload = loaded;
-                } else {
-                    media.onloadeddata = loaded;
-                }
+                if (media.tagName === 'IMG') media.onload = loaded;
+                else media.onloadeddata = loaded;
 
                 obs.unobserve(container);
             });
         }, {
             rootMargin: '200px'
         });
+    }
+
+    // Создание bitmap placeholder для картинки
+    createBitmapPlaceholder(mediaEl) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = 40; // маленькое разрешение для битмапа
+        const height = 40;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Когда изображение загрузится
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = mediaEl.dataset.src;
+
+        img.onload = () => {
+            // Рисуем уменьшенное изображение на canvas
+            ctx.drawImage(img, 0, 0, width, height);
+            // Можно усилить эффект "pixel art"
+            ctx.imageSmoothingEnabled = false;
+
+            // Вставляем canvas перед mediaEl
+            mediaEl.parentNode.insertBefore(canvas, mediaEl);
+        };
+
+        return canvas;
     }
 
     observeMedia() {
