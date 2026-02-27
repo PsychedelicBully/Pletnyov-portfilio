@@ -414,7 +414,7 @@ class PortfolioGallery {
     }
 
 
-    ccreateGalleryItem(post) {
+    createGalleryItem(post) {
         const item = document.createElement('div');
         item.className = 'gallery-item';
 
