@@ -421,28 +421,26 @@ class PortfolioGallery {
         const mediaWrapper = document.createElement('div');
         mediaWrapper.className = 'media-item';
 
-        let mediaElement;
+        const lqip = document.createElement('img');   // низкое качество
+        const full = document.createElement('img');   // полное качество
 
-        if (post.mediaType === 'video' && post.videoUrl) {
-            mediaElement = document.createElement('video');
-            mediaElement.dataset.src = post.videoUrl;
-            mediaElement.muted = true;
-            mediaElement.loop = true;
-            mediaElement.playsInline = true;
+        // Генерируем уменьшенную версию (для Tumblr работает замена размера)
+        const lowQualitySrc = post.image
+            ? post.image.replace(/s\d+x\d+/g, 's75x75')
+            : '';
 
-            if (post.image) {
-                mediaElement.poster = post.image;
-            }
-        } else {
-            mediaElement = document.createElement('img');
-            mediaElement.dataset.src = post.image;
-            mediaElement.alt = 'Post image';
-        }
+        lqip.src = lowQualitySrc || post.image;
+        lqip.className = 'media-lqip';
 
-        mediaWrapper.appendChild(mediaElement);
+        full.dataset.src = post.image;
+        full.className = 'media-full';
+        full.alt = 'Post image';
+
+        mediaWrapper.appendChild(lqip);
+        mediaWrapper.appendChild(full);
+
         item.appendChild(mediaWrapper);
 
-        // описание
         if (post.description && post.description.trim() !== '') {
             const info = document.createElement('div');
             info.className = 'post-info';
@@ -499,28 +497,20 @@ class PortfolioGallery {
                 if (!entry.isIntersecting) return;
 
                 const container = entry.target;
-                const media = container.querySelector('img, video');
-                if (!media) return;
+                const fullImg = container.querySelector('.media-full');
 
-                if (media.dataset.src) {
-                    media.src = media.dataset.src;
-                }
+                if (!fullImg || !fullImg.dataset.src) return;
 
-                const loaded = () => {
+                fullImg.src = fullImg.dataset.src;
+
+                fullImg.onload = () => {
                     container.classList.add('loaded');
                 };
-
-                if (media.tagName === 'IMG') {
-                    media.onload = loaded;
-                } else {
-                    media.onloadeddata = loaded;
-                    media.load();
-                }
 
                 obs.unobserve(container);
             });
         }, {
-            rootMargin: '150px'
+            rootMargin: '200px'
         });
     }
 

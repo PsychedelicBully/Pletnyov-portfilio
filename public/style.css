@@ -758,3 +758,39 @@ main,
     opacity: 1;
     filter: blur(0);
 }
+
+.media-item {
+    position: relative;
+    overflow: hidden;
+    background: #f2f2f2;
+}
+
+/* low quality */
+.media-lqip {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(25px);
+    transform: scale(1.1);
+    transition: opacity 0.6s ease;
+}
+
+/* full image */
+.media-full {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+/* когда загрузилось */
+.media-item.loaded .media-full {
+    opacity: 1;
+}
+
+.media-item.loaded .media-lqip {
+    opacity: 0;
+}
