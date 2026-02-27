@@ -6,6 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pletnyov</title>
     <link rel="stylesheet" href="./style.css">
+
+    <style>
+        /* ===== Lazy Media Effect ===== */
+
+        .media-item {
+            position: relative;
+            overflow: hidden;
+            background: #f2f2f2;
+        }
+
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            height: auto;
+            display: block;
+
+            opacity: 0;
+            filter: blur(20px);
+            transform: scale(1.05);
+            transition:
+                opacity 0.6s ease,
+                filter 0.8s ease,
+                transform 0.8s ease;
+        }
+
+        .media-item.loaded img,
+        .media-item.loaded video {
+            opacity: 1;
+            filter: blur(0);
+            transform: scale(1);
+        }
+    </style>
 </head>
 
 <body>
@@ -25,10 +57,8 @@
 
     <main>
         <div class="gallery" id="gallery">
-
         </div>
     </main>
-
 
     <footer>
         <div class="footer-content">
@@ -44,6 +74,61 @@
     </footer>
 
     <script src="./script.js"></script>
+
+    <!-- ===== Lazy Loading Script ===== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+
+                    if (!entry.isIntersecting) return;
+
+                    const container = entry.target;
+                    const media = container.querySelector("img, video");
+
+                    if (media.dataset.src) {
+                        media.src = media.dataset.src;
+                    }
+
+                    if (media.tagName === "VIDEO") {
+                        media.load();
+                    }
+
+                    const loadedHandler = () => {
+                        container.classList.add("loaded");
+                    };
+
+                    if (media.tagName === "IMG") {
+                        media.onload = loadedHandler;
+                    } else {
+                        media.onloadeddata = loadedHandler;
+                    }
+
+                    obs.unobserve(container);
+                });
+            }, {
+                rootMargin: "150px"
+            });
+
+            function observeMedia() {
+                const mediaItems = document.querySelectorAll(".media-item");
+                mediaItems.forEach(item => observer.observe(item));
+            }
+
+            // Наблюдаем за галереей и автоматически подключаем новые элементы
+            const gallery = document.getElementById("gallery");
+
+            const galleryObserver = new MutationObserver(() => {
+                observeMedia();
+            });
+
+            galleryObserver.observe(gallery, { childList: true, subtree: true });
+
+            observeMedia();
+        });
+    </script>
+
 </body>
 
 </html>
