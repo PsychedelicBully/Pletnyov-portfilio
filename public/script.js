@@ -66,7 +66,7 @@ class PortfolioGallery {
     }
 
     async loadPortfolio() {
-        this.showLoading();
+        this.galleryEl.innerHTML = '';
 
         try {
             const posts = await this.fetchFromTumblrAPI();
@@ -464,7 +464,7 @@ class PortfolioGallery {
     }
 
     showLoading() {
-        this.galleryEl.innerHTML = `<div class="loading"><p>Загрузка работ...</p></div>`;
+        // убрали экран загрузки
     }
 
     showDemoData() {
