@@ -527,10 +527,13 @@ h3,
 }
 
 /* Ссылки — подчёркивание при наведении */
-a {
+.group a {
+    display: inline-block;
     text-decoration: none;
-    color: #111;
-    transition: border-bottom 0.2s ease;
+}
+
+.group a:hover {
+    border-bottom: 1px solid #111;
 }
 
 a:hover {
