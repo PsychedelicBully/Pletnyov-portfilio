@@ -257,7 +257,7 @@ class PortfolioGallery {
         return '';
     }
 
-    /*
+    
     generateTitleFromPost(post) {
         if (post.tags && post.tags.length > 0) {
             const firstTag = post.tags[0];
@@ -269,7 +269,7 @@ class PortfolioGallery {
         }
         return 'Work';
     }
-    */
+
 
     extractImagesFromContent(content) {
         if (!content || typeof content !== 'string') return [];
