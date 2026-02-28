@@ -438,19 +438,19 @@ class PortfolioGallery {
             // ===== IMAGE =====
             mediaElement = document.createElement('img');
             mediaElement.dataset.src = post.image;
-            mediaElement.alt = 'Post image';
+            mediaElement.alt = post.title || 'Post image';
         }
 
         mediaWrapper.appendChild(mediaElement);
         item.appendChild(mediaWrapper);
 
         // ===== POST TITLE =====
-        if (post.title && post.title.trim() !== '') {
-            const titleEl = document.createElement('h3');
-            titleEl.className = 'post-title';
-            titleEl.textContent = post.title;
-            item.appendChild(titleEl);
-        }
+        // Берём title из Tumblr, игнорируя tags
+        const postTitle = post.title && post.title.trim() !== '' ? post.title : 'Без названия';
+        const titleEl = document.createElement('h3'); // на главной h3, на странице поста можно сделать h1
+        titleEl.className = 'post-title';
+        titleEl.textContent = postTitle;
+        item.appendChild(titleEl);
 
         // ===== POST DESCRIPTION (только на странице поста) =====
         if (isSinglePost && post.description && post.description.trim() !== '') {
