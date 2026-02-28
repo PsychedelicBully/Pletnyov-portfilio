@@ -52,8 +52,8 @@ class PortfolioGallery {
         div.innerHTML = html;
         const h1 = div.querySelector('h1');
         if (h1) {
-            // Возвращаем текст без HTML-тегов
-            return h1.textContent.trim();
+            // Возвращаем внутренний HTML первого заголовка (со ссылками и другими тегами)
+            return h1.innerHTML;
         }
         return null;
     }
@@ -485,7 +485,7 @@ class PortfolioGallery {
 
             const titleEl = document.createElement('div');
             titleEl.className = 'post-title';
-            titleEl.textContent = post.title;
+            titleEl.innerHTML = post.title;
 
             info.appendChild(titleEl);
             item.appendChild(info);
@@ -493,7 +493,9 @@ class PortfolioGallery {
         // Если заголовка нет — ничего не выводим (блок не создаётся)
 
         item.style.cursor = 'pointer';
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
+            // Если кликнули на ссылку (или внутри неё) — не переходим на страницу поста
+            if (e.target.closest('a')) return;
             window.location.href = `/post/${post.id}`;
         });
 
