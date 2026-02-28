@@ -18,8 +18,7 @@
 
         .post-layout {
             display: grid;
-            grid-template-columns: minmax(320px, 1.2fr) 140px 1fr;
-            align-items: start;
+            grid-template-columns: minmax(320px, 1.2fr) 1fr;
         }
 
         /* ====== LEFT COLUMN (MEDIA) ====== */
@@ -53,6 +52,26 @@
         }
 
         /* ====== RIGHT COLUMN (CONTENT) ====== */
+
+        .right-column {
+            padding: 40px 0;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            align-items: start;
+            margin-bottom: 40px;
+        }
+
+        .section-label {
+            padding: 0 20px;
+        }
+
+        .section-content {
+            padding: 0 30px;
+            max-width: 600px;
+        }
 
         .section-content {
             grid-column: 3;
@@ -190,29 +209,23 @@
             </div>
         </div>
 
-        <!-- POST -->
-        <div class="section-label">Post</div>
-        <div class="section-content">
-            <div class="post-title" id="postTitle"></div>
-            <div class="post-description" id="postDescription"></div>
-            <div class="post-date" id="postDate"></div>
-            <div class="post-tags" id="postTags"></div>
-            <div class="post-id" id="postId"></div>
-        </div>
+        <div class="right-column">
 
-        <!-- SHARE -->
-        <div class="section-label">Share</div>
-        <div class="section-content">
-            <div class="share-buttons" id="shareButtons"></div>
-        </div>
-
-        <!-- NAVIGATION -->
-        <div class="section-label">Navigation</div>
-        <div class="section-content">
-            <div class="post-navigation">
-                <a href="#" id="prevPost">Предыдущее</a>
-                <a href="#" id="nextPost">Далее</a>
+            <div class="row">
+                <div class="section-label">Post</div>
+                <div class="section-content">...</div>
             </div>
+
+            <div class="row">
+                <div class="section-label">Share</div>
+                <div class="section-content">...</div>
+            </div>
+
+            <div class="row">
+                <div class="section-label">Navigation</div>
+                <div class="section-content">...</div>
+            </div>
+
         </div>
 
     </div>
