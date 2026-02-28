@@ -449,7 +449,28 @@ class PortfolioGallery {
         mediaWrapper.appendChild(mediaElement);
         item.appendChild(mediaWrapper);
 
+        // ❗ ВАЖНО: description НЕ удаляем, а просто отключаем
+        // (чтобы не ломать структуру)
+        /*
+        if (post.description && post.description.trim() !== '') {
+            const info = document.createElement('div');
+            info.className = 'post-info';
+    
+            const desc = document.createElement('div');
+            desc.className = 'post-description';
+            desc.textContent = post.description;
+    
+            info.appendChild(desc);
+            item.appendChild(info);
+        }
+        */
 
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', () => {
+            window.location.href = `/post/${post.id}`;
+        });
+
+        return item; // ← ЭТО ОБЯЗАТЕЛЬНО
     }
 
     showLoading() {
