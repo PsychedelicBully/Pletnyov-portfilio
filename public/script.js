@@ -243,21 +243,21 @@ class PortfolioGallery {
     }
 
     extractPostTitle(post) {
-        // Пытаемся получить заголовок из caption
+        // 1. Пытаемся получить настоящий заголовок из caption
         if (post.caption) {
             const titleFromCaption = this.extractTitleFromCaption(post.caption);
             if (titleFromCaption) return titleFromCaption;
         }
-        // Если caption нет или там нет h1, пробуем body
+        // 2. Если нет, пробуем body
         if (post.body) {
             const titleFromBody = this.extractTitleFromCaption(post.body);
             if (titleFromBody) return titleFromBody;
         }
-        // Если ничего не нашли, возвращаем пустую строку (на главной ничего не покажется)
-        return '';
+        // 3. Если настоящего заголовка нет, используем запасной вариант (первый тег или год)
+        return this.generateTitleFromPost(post);
     }
 
-    
+
     generateTitleFromPost(post) {
         if (post.tags && post.tags.length > 0) {
             const firstTag = post.tags[0];
