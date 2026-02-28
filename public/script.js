@@ -449,17 +449,19 @@ class PortfolioGallery {
         mediaWrapper.appendChild(mediaElement);
         item.appendChild(mediaWrapper);
 
-        if (post.description && post.description.trim() !== '') {
+        // Показываем только заголовок (первый тег), если он есть
+        if (post.title && post.title.trim() !== '') {
             const info = document.createElement('div');
             info.className = 'post-info';
 
-            const desc = document.createElement('div');
-            desc.className = 'post-description';
-            desc.textContent = post.description;
+            const titleEl = document.createElement('div');
+            titleEl.className = 'post-title';
+            titleEl.textContent = post.title;
 
-            info.appendChild(desc);
+            info.appendChild(titleEl);
             item.appendChild(info);
         }
+        // Если заголовка нет — ничего не выводим (блок не создаётся)
 
         item.style.cursor = 'pointer';
         item.addEventListener('click', () => {
