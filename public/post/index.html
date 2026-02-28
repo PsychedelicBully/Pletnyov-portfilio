@@ -204,6 +204,12 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" class="search-input" placeholder="Поиск">
                 </div>
+                <!-- + + + Новая кнопка переключения темы + + + -->
+                <button id="themeToggle" class="theme-toggle" aria-label="Переключить тему">
+                    <span class="light-icon">☀️</span>
+                    <span class="dark-icon">🌙</span>
+                </button>
+                <!-- + + + Конец новой кнопки + + + -->
                 <a href="/filters" class="filters-link">Фильтры</a>
             </div>
         </div>
@@ -316,6 +322,21 @@
                     if (h1) h1.remove(); // удаляем заголовок, чтобы он не попал в описание
                 }
                 return div.textContent || div.innerText || ''; // возвращаем чистый текст без тегов
+            }
+
+
+            async init() {
+                this.setupThemeToggle(); // добавить эту строку
+                if (!this.postId) return;
+                await this.fetchAllPosts();
+                const currentIndex = this.allPosts.findIndex(p =>
+                    String(p.id) === this.postId || p.id_string === this.postId
+                );
+                if (currentIndex === -1) {
+                    this.renderNotFound();
+                    return;
+                }
+                this.render(this.allPosts[currentIndex], currentIndex);
             }
 
             render(post, index) {

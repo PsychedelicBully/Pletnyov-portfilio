@@ -66,6 +66,7 @@ class PortfolioGallery {
 
     init() {
         this.setupEventListeners();
+        this.setupThemeToggle(); // <-- добавить эту строку
         this.loadPortfolio();
     }
 
@@ -612,6 +613,27 @@ class PortfolioGallery {
     observeMedia() {
         const items = this.galleryEl.querySelectorAll('.media-item');
         items.forEach(item => this.observer.observe(item));
+    }
+
+    setupThemeToggle() {
+        const toggleBtn = document.getElementById('themeToggle');
+        if (!toggleBtn) return;
+
+        // При загрузке проверяем сохранённую тему
+        const savedTheme = localStorage.getItem('site-theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            // Сохраняем выбор
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('site-theme', 'dark');
+            } else {
+                localStorage.setItem('site-theme', 'light');
+            }
+        });
     }
 }
 

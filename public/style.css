@@ -5,6 +5,37 @@
     box-sizing: border-box;
 }
 
+/* === CSS переменные для тем === */
+:root {
+    /* Светлая тема (по умолчанию) */
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --border-color: #eaeaea;
+    --border-light: #f0f0f0;
+    --header-bg: rgba(255, 255, 255, 0.382);
+    --media-bg: #f2f2f2;
+    --link-hover-border: #111;
+    --tag-bg: #f0f0f0;
+    --tag-hover-bg: #e0e0e0;
+}
+
+/* Тёмная тема */
+body.dark-theme {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --text-secondary: #aaaaaa;
+    --text-tertiary: #777777;
+    --border-color: #333333;
+    --border-light: #2a2a2a;
+    --header-bg: rgba(26, 26, 26, 0.7);
+    --media-bg: #2d2d2d;
+    --link-hover-border: #fff;
+    --tag-bg: #333333;
+    --tag-hover-bg: #444444;
+}
+
 html {
     font-size: 18px;
 }
@@ -12,8 +43,8 @@ html {
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Arial', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.4;
-    color: #000;
-    background: #fff;
+    color: var(--text-color);
+    background: var(--bg-color);
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -49,7 +80,7 @@ header {
 .site-title {
     font-size: 1rem;
     font-weight: 500;
-    color: #000;
+    color: var(--text-color);
     text-decoration: none;
     letter-spacing: -0.01em;
 }
@@ -66,7 +97,7 @@ header {
 
 .nav-link {
     font-size: 1rem;
-    color: #000;
+    color: var(--text-color);
     text-decoration: none;
     font-weight: 400;
     letter-spacing: -0.01em;
@@ -76,7 +107,7 @@ header {
 .nav-link:hover,
 .nav-link.active {
     opacity: 1;
-    border-bottom: 1px solid #000;
+    border-bottom: 1px solid var(--link-hover-border);
 }
 
 .header-right {
@@ -97,17 +128,17 @@ header {
     width: 120px;
     border-bottom: 1px solid transparent;
     transition: all 0.2s ease;
-    color: #000;
+    color: var(--text-color);
 }
 
 .search-input:focus {
     outline: none;
-    border-bottom-color: #000;
+    border-bottom-color: var(--text-color);
     width: 180px;
 }
 
 .search-input::placeholder {
-    color: #666;
+    color: var(--text-secondary);
     font-weight: 400;
 }
 
@@ -134,8 +165,8 @@ header {
 .filter-tag {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background: #f0f0f0;
-    color: #333;
+    background: var(--tag-bg);
+    color: var(--text-color);
     text-decoration: none;
     border-radius: 3px;
     font-size: 1rem;
@@ -143,7 +174,7 @@ header {
 }
 
 .filter-tag:hover {
-    background: #e0e0e0;
+    background: var(--tag-hover-bg);
 }
 
 /* Main content */
@@ -169,7 +200,7 @@ main {
     /* занимает всю ширину колонки */
     margin-bottom: 1rem;
     /* отступ между элементами по вертикали */
-    background: #ffffff;
+    background: var(--bg-color);
     position: relative;
     transition: opacity 0.3s ease;
     break-inside: avoid;
@@ -203,7 +234,7 @@ main {
     width: 100%;
     max-width: 300px;
     margin-bottom: 1rem;
-    background: #fff;
+    background: var(--bg-color);
     /* position: sticky; удалить */
     /* top: 80px; удалить */
     /* z-index: 10; удалить */
@@ -212,7 +243,7 @@ main {
 .pinned-gallery-item {
     width: 100%;
     margin-bottom: 1rem;
-    background: #ffffff;
+    background: var(--bg-color);
     transition: opacity 0.3s ease;
 }
 
@@ -238,7 +269,7 @@ main {
     margin-top: 0.75rem;
     padding: 0;
     background: transparent;
-    color: #333;
+    color: var(--text-color);
     line-height: 1.4;
 }
 
@@ -251,12 +282,12 @@ main {
     font-weight: 500;
     margin-bottom: 0.25rem;
     letter-spacing: -0.01em;
-    color: #000;
+    color: var(--text-color);
 }
 
 .post-description {
     font-size: 1rem;
-    color: #666;
+    color: var(--text-secondary);
     margin-bottom: 0.25rem;
     line-height: 1.4;
     max-width: 100%;
@@ -268,7 +299,7 @@ main {
     flex-wrap: wrap;
     gap: 0.5rem;
     font-size: 1rem;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .tag {
@@ -277,7 +308,7 @@ main {
 
 .post-date {
     font-size: 1rem;
-    color: #999;
+    color: var(--text-tertiary);
     margin-top: 0.25rem;
 }
 
@@ -316,7 +347,7 @@ main {
     text-align: center;
     padding: 4rem 2rem;
     font-size: 1rem;
-    color: #666;
+    color: var(--text-secondary);
     grid-column: 1 / -1;
     font-weight: 400;
 }
@@ -325,7 +356,7 @@ main {
     font-size: 1rem;
     font-weight: 500;
     margin-bottom: 1rem;
-    color: #000;
+    color: var(--text-color);
 }
 
 .error p {
@@ -346,7 +377,7 @@ main {
 }
 
 .retry-button {
-    background: #000;
+    background: var(--bg-color);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -375,7 +406,7 @@ footer {
     justify-content: space-between;
     align-items: center;
     font-size: 1rem;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .footer-links {
@@ -384,13 +415,13 @@ footer {
 }
 
 .footer-link {
-    color: #666;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .footer-link:hover {
-    color: #000;
+    color: var(--text-color);
 }
 
 /* Адаптивность */
@@ -508,7 +539,7 @@ body {
     /* Принудительно Arial */
     font-size: 18px;
     /* Единый базовый размер */
-    color: #111;
+    color: var(--text-color);
     line-height: 1.5;
 }
 
@@ -528,19 +559,19 @@ h3,
 /* Ссылки — подчёркивание при наведении */
 a {
     text-decoration: none;
-    color: #111;
+    color: var(--text-color);
     transition: border-bottom 0.2s ease;
 }
 
 a:hover {
-    border-bottom: 1px solid #111;
+    border-bottom: 1px solid var(--link-hover-border);
 }
 
 /* Убираем лишние подчёркивания у некоторых элементов, если они были */
 .nav-link:hover,
 .filter-tag:hover,
 .footer-link:hover {
-    border-bottom: 1px solid #111;
+    border-bottom: 1px solid var(--link-hover-border);
 }
 
 /* === Единые отступы === */
@@ -627,7 +658,7 @@ main,
 
 /* Короткое аккуратное подчёркивание */
 .filters-wrapper a:hover {
-    border-bottom: 1px solid #111;
+    border-bottom: 1px solid var(--link-hover-border);
 }
 
 /* Радужный заголовок */
@@ -705,13 +736,46 @@ main,
 
 /* подчёркивание только при наведении */
 .filters-wrapper a:hover {
-    border-bottom: 1px solid #111;
+    border-bottom: 1px solid var(--link-hover-border);
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-color);
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.theme-toggle:hover {
+    opacity: 0.7;
+}
+
+/* По умолчанию показываем иконку солнца (для светлой темы), луну прячем */
+.theme-toggle .dark-icon {
+    display: none;
+}
+
+/* В тёмной теме показываем луну, прячем солнце */
+body.dark-theme .theme-toggle .light-icon {
+    display: none;
+}
+
+body.dark-theme .theme-toggle .dark-icon {
+    display: inline;
 }
 
 .media-item {
     position: relative;
     overflow: hidden;
-    background: #f2f2f2;
+    background: var(--media-bg);
 }
 
 .media-item canvas,
