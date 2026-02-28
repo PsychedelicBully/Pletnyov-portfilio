@@ -414,7 +414,7 @@ class PortfolioGallery {
     }
 
 
-    createGalleryItem(post, isSinglePost = false) {
+    createGalleryItem(post) {
         const item = document.createElement('div');
         item.className = 'gallery-item';
 
@@ -425,42 +425,42 @@ class PortfolioGallery {
 
         // ===== VIDEO =====
         if (post.mediaType === 'video' && post.videoUrl) {
+
             mediaElement = document.createElement('video');
             mediaElement.dataset.src = post.videoUrl;
+
             mediaElement.muted = true;
             mediaElement.loop = true;
             mediaElement.autoplay = true;
             mediaElement.playsInline = true;
+
             if (post.image) {
                 mediaElement.poster = post.image;
             }
+
         } else {
+
             // ===== IMAGE =====
             mediaElement = document.createElement('img');
             mediaElement.dataset.src = post.image;
-            mediaElement.alt = post.title || 'Post image';
+            mediaElement.alt = 'Post image';
         }
 
         mediaWrapper.appendChild(mediaElement);
         item.appendChild(mediaWrapper);
 
-        // ===== POST TITLE =====
-        // Берём title из Tumblr, игнорируя tags
-        const postTitle = post.title && post.title.trim() !== '' ? post.title : 'Без названия';
-        const titleEl = document.createElement('h3'); // на главной h3, на странице поста можно сделать h1
-        titleEl.className = 'post-title';
-        titleEl.textContent = postTitle;
-        item.appendChild(titleEl);
+        if (post.description && post.description.trim() !== '') {
+            const info = document.createElement('div');
+            info.className = 'post-info';
 
-        // ===== POST DESCRIPTION (только на странице поста) =====
-        if (isSinglePost && post.description && post.description.trim() !== '') {
-            const descEl = document.createElement('div');
-            descEl.className = 'post-description';
-            descEl.textContent = post.description;
-            item.appendChild(descEl);
+            const desc = document.createElement('div');
+            desc.className = 'post-description';
+            desc.textContent = post.description;
+
+            info.appendChild(desc);
+            item.appendChild(info);
         }
 
-        // ===== клик на весь элемент =====
         item.style.cursor = 'pointer';
         item.addEventListener('click', () => {
             window.location.href = `/post/${post.id}`;
