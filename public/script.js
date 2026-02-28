@@ -48,10 +48,12 @@ class PortfolioGallery {
 
     extractTitleFromCaption(html) {
         if (!html || typeof html !== 'string') return null;
-        // Ищем первый тег h1 и берём его текст
-        const match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-        if (match && match[1]) {
-            return match[1].trim();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const h1 = div.querySelector('h1');
+        if (h1) {
+            // Возвращаем текст без HTML-тегов
+            return h1.textContent.trim();
         }
         return null;
     }
