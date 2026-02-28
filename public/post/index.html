@@ -296,11 +296,52 @@
                 return div.textContent || div.innerText || '';
             }
 
+            extractTitleFromHtml(html) {
+                if (!html) return null;
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                const h1 = div.querySelector('h1');
+                if (h1) {
+                    return h1.innerHTML; // сохраняем ссылки внутри заголовка
+                }
+                return null;
+            }
+
+            extractDescriptionFromHtml(html, removeTitle = true) {
+                if (!html) return '';
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                if (removeTitle) {
+                    const h1 = div.querySelector('h1');
+                    if (h1) h1.remove(); // удаляем заголовок, чтобы он не попал в описание
+                }
+                return div.textContent || div.innerText || ''; // возвращаем чистый текст без тегов
+            }
+
             render(post, index) {
+                // Извлекаем заголовок и описание из caption или body
+                let titleHtml = '';
+                let descriptionText = '';
 
-                document.getElementById('postTitle').textContent =
-                    post.summary || post.title || '';
+                if (post.caption) {
+                    titleHtml = this.extractTitleFromHtml(post.caption) || '';
+                    descriptionText = this.extractDescriptionFromHtml(post.caption, true);
+                } else if (post.body) {
+                    titleHtml = this.extractTitleFromHtml(post.body) || '';
+                    descriptionText = this.extractDescriptionFromHtml(post.body, true);
+                } else {
+                    // fallback для постов без caption/body (например, демо)
+                    titleHtml = post.title || '';
+                    descriptionText = '';
+                }
 
+                // Заполняем заголовок (может содержать HTML-ссылку)
+                document.getElementById('postTitle').innerHTML = titleHtml;
+
+                // Заполняем описание (только текст)
+                document.getElementById('postDescription').textContent = descriptionText;
+
+                // Дата
                 if (post.date) {
                     const d = new Date(post.date);
                     document.getElementById('postDate').textContent =
@@ -309,14 +350,11 @@
                             month: 'long',
                             year: 'numeric'
                         });
+                } else {
+                    document.getElementById('postDate').textContent = '';
                 }
 
-                let descText = '';
-                if (post.caption) descText = this.extractText(post.caption);
-                else if (post.body) descText = this.extractText(post.body);
-
-                document.getElementById('postDescription').textContent = descText;
-
+                // Теги
                 if (post.tags && post.tags.length) {
                     document.getElementById('postTags').innerHTML =
                         post.tags.map(tag =>
@@ -326,8 +364,8 @@
                     document.getElementById('postTags').innerHTML = '';
                 }
 
-                document.getElementById('postId').textContent =
-                    `ID: ${post.id || post.id_string}`;
+                // ID
+                document.getElementById('postId').textContent = `ID: ${post.id || post.id_string}`;
 
                 /* ===== MEDIA BLOCK (ВОССТАНОВЛЕНО) ===== */
 
