@@ -46,6 +46,16 @@ class PortfolioGallery {
         return null;
     }
 
+    extractTitleFromCaption(html) {
+        if (!html || typeof html !== 'string') return null;
+        // Ищем первый тег h1 и берём его текст
+        const match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+        if (match && match[1]) {
+            return match[1].trim();
+        }
+        return null;
+    }
+
     // Получение параметра filter из URL
     getFilterFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -198,7 +208,7 @@ class PortfolioGallery {
 
                 processedPosts.push({
                     id: post.id_string || post.id,
-                    title: this.generateTitleFromPost(post),
+                    title: this.extractPostTitle(post), // новая функция
                     image: imageUrl,
                     tags: post.tags || [],
                     description: this.extractDescription(post),
@@ -232,6 +242,22 @@ class PortfolioGallery {
         return processedPosts;
     }
 
+    extractPostTitle(post) {
+        // Пытаемся получить заголовок из caption
+        if (post.caption) {
+            const titleFromCaption = this.extractTitleFromCaption(post.caption);
+            if (titleFromCaption) return titleFromCaption;
+        }
+        // Если caption нет или там нет h1, пробуем body
+        if (post.body) {
+            const titleFromBody = this.extractTitleFromCaption(post.body);
+            if (titleFromBody) return titleFromBody;
+        }
+        // Если ничего не нашли, возвращаем пустую строку (на главной ничего не покажется)
+        return '';
+    }
+
+    /*
     generateTitleFromPost(post) {
         if (post.tags && post.tags.length > 0) {
             const firstTag = post.tags[0];
@@ -243,6 +269,7 @@ class PortfolioGallery {
         }
         return 'Work';
     }
+    */
 
     extractImagesFromContent(content) {
         if (!content || typeof content !== 'string') return [];
