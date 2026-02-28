@@ -243,21 +243,21 @@ class PortfolioGallery {
     }
 
     extractPostTitle(post) {
-        // 1. Пытаемся получить настоящий заголовок из caption
+        // Пытаемся получить заголовок из caption
         if (post.caption) {
             const titleFromCaption = this.extractTitleFromCaption(post.caption);
             if (titleFromCaption) return titleFromCaption;
         }
-        // 2. Если нет, пробуем body
+        // Если caption нет или там нет h1, пробуем body
         if (post.body) {
             const titleFromBody = this.extractTitleFromCaption(post.body);
             if (titleFromBody) return titleFromBody;
         }
-        // 3. Если настоящего заголовка нет, используем запасной вариант (первый тег или год)
-        return this.generateTitleFromPost(post);
+        // Если ничего не нашли, возвращаем пустую строку (на главной ничего не покажется)
+        return '';
     }
 
-
+    /*
     generateTitleFromPost(post) {
         if (post.tags && post.tags.length > 0) {
             const firstTag = post.tags[0];
@@ -269,7 +269,7 @@ class PortfolioGallery {
         }
         return 'Work';
     }
-
+    */
 
     extractImagesFromContent(content) {
         if (!content || typeof content !== 'string') return [];
