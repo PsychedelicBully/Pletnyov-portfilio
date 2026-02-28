@@ -158,7 +158,66 @@
             }
         }
 
-        
+        /* === PATCH: гибкая адаптивная правая колонка === */
+
+        /* Объединяем label + content в один адаптивный flex-ряд */
+        .post-layout>.section-label,
+        .post-layout>.section-content {
+            display: block;
+            /* по умолчанию блок */
+        }
+
+        /* Группируем пары как flex */
+        .post-layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 1.2fr) 1fr;
+            /* левая + общая правая область */
+            column-gap: 40px;
+            /* расстояние между левой и правой */
+        }
+
+        /* Внутри правой области делаем flex-ряд для каждой пары */
+        .post-layout>.section-label+.section-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            /* расстояние между label и content */
+        }
+
+        /* Меньший label */
+        .post-layout>.section-label+.section-content>.section-label {
+            flex: 0 0 140px;
+        }
+
+        /* Контент растёт под содержимое */
+        .post-layout>.section-label+.section-content>.section-content {
+            flex: 1 1 auto;
+        }
+
+        /* Убираем растяжение по высоте */
+        .post-layout>.section-label+.section-content>.section-label,
+        .post-layout>.section-label+.section-content>.section-content {
+            align-self: start;
+        }
+
+        /* Responsive: на мобилках → одна колонка */
+        @media (max-width: 900px) {
+            .post-layout {
+                grid-template-columns: 1fr;
+                row-gap: 20px;
+            }
+
+            .post-layout>.section-label+.section-content {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .post-layout>.section-label+.section-content>.section-label,
+            .post-layout>.section-label+.section-content>.section-content {
+                flex: none;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
