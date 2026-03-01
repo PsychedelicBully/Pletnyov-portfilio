@@ -179,7 +179,7 @@ header {
 
 /* Main content */
 main {
-    margin-top: 80px;
+    margin-top: 60px;
     min-height: calc(100vh - 160px);
 }
 
@@ -456,7 +456,7 @@ footer {
     }
 
     main {
-        margin-top: 120px;
+        margin-top: 90px;
     }
 
     .gallery {
