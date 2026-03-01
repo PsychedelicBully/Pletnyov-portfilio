@@ -56,10 +56,10 @@ header {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 500;
+    z-index: 1000;
     background: var(--header-bg);
     backdrop-filter: blur(30px);
-    padding: 1rem 0;
+    padding: 0.5rem 0;
 }
 
 .header-content {
