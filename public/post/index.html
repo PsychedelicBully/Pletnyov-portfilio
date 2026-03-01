@@ -363,12 +363,18 @@
                 // Дата
                 if (post.date) {
                     const d = new Date(post.date);
-                    document.getElementById('postDate').textContent =
-                        d.toLocaleDateString('ru-RU', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                        });
+                    // Проверяем, валидная ли дата
+                    if (!isNaN(d.getTime())) {
+                        document.getElementById('postDate').textContent =
+                            d.toLocaleDateString('ru-RU', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            });
+                    } else {
+                        // Если дата не парсится, показываем исходную строку (или можно пустую)
+                        document.getElementById('postDate').textContent = post.date;
+                    }
                 } else {
                     document.getElementById('postDate').textContent = '';
                 }
