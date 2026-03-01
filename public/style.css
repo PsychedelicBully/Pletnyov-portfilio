@@ -179,7 +179,7 @@ header {
 
 /* Main content */
 main {
-    margin-top: 60px;
+    margin-top: 30px;
     min-height: calc(100vh - 160px);
 }
 
