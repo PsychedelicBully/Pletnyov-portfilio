@@ -546,7 +546,6 @@ body {
 h1,
 h2,
 h3,
-.post-title,
 .filters-container h1,
 .section-label {
     font-weight: 700 !important;
@@ -554,6 +553,10 @@ h3,
     /* Такого же размера, как основной текст, но жирные */
     letter-spacing: normal;
 }
+
+.post-title {
+    font-weight: 400;
+ }   
 
 /* Ссылки — подчёркивание при наведении */
 a {
