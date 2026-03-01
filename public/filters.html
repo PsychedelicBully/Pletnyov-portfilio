@@ -89,7 +89,7 @@
 
     <script>
         const GROUPS = {
-            Prefiltered: ["me"],
+            Prefiltered: [],
             Team: [],
             Scene: [],
             Object: [],
@@ -109,6 +109,7 @@
 
         function classify(tag) {
             const t = tag.toLowerCase();
+            if (PREFILTERED.includes(t)) return "Prefiltered";
             if (/^\d{4}$/.test(t) || t === "1999+") return "Year";
             if (COLORS.includes(t)) return "Color";
             if (WEARABLE.some(w => t.includes(w))) return "Wearables";
