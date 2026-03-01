@@ -100,11 +100,12 @@
             "Touch me": []
         };
 
-        const COLORS = ["black", "blue", "green", "red", "orange", "pink", "yellow", "metal", "paper", "white"];
+        const PREFILTERED = ["me", "design", "fun", "real items", "art"]
+        const COLORS = ["black", "blue", "green", "grey", "red", "orange", "pink", "yellow", "metal", "paper", "white"];
         const WEARABLE = ["bag", "dress", "hoodie", "jacket", "shirt", "shoes", "wear", "denim", "glasses", "mens", "womens"];
         const OBJECT = ["architecture", "furniture", "home", "object", "paintings", "toy", "transport", "watch", "sport", "urban", "light"];
-        const SCENE = ["logo", "package", "product", "gfx", "navigation", "interface", "concept", "sketch", "idea", "decal", "art", "prompt", "craft", "camera", "music"];
-        const TEAM = ["solo", "yandex", "sila", "kley", "als", "hityre", "netnet", "studies", "kseniashnaider"];
+        const SCENE = ["logo", "package", "font", "letters", "photo", "video", "print", "typography", "product", "gfx", "navigation", "interface", "concept", "sketch", "idea", "decal", "art", "prompt", "craft", "camera", "music"];
+        const TEAM = ["solo", "cult", "kontur", "hazeon", "als", "hityre", "netnet", "studies", "kseniashnaider"];
 
         function classify(tag) {
             const t = tag.toLowerCase();
