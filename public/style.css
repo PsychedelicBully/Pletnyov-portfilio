@@ -29,7 +29,7 @@ body.dark-theme {
     --text-tertiary: #777777;
     --border-color: #333333;
     --border-light: #2a2a2a;
-    --header-bg: rgba(26, 26, 26, 0.7);
+    --header-bg: #3E404F;
     --media-bg: #2d2d2d;
     --link-hover-border: #fff;
     --tag-bg: #333333;
@@ -665,35 +665,35 @@ main,
 
 /* Радужный заголовок */
 .rainbow span:nth-child(1) {
-    color: #ff0000;
+    color: #34A0FF;
 }
 
 .rainbow span:nth-child(2) {
-    color: #ff7f00;
+    color: #44A8FF;
 }
 
 .rainbow span:nth-child(3) {
-    color: #ffff00;
+    color: #5EB4FF;
 }
 
 .rainbow span:nth-child(4) {
-    color: #00ff00;
+    color: #6DBBFE;
 }
 
 .rainbow span:nth-child(5) {
-    color: #00bfff;
+    color: #7AC2FF;
 }
 
 .rainbow span:nth-child(6) {
-    color: #0000ff;
+    color: #91CDFF;
 }
 
 .rainbow span:nth-child(7) {
-    color: #8b00ff;
+    color: #A4D6FF;
 }
 
 .rainbow span:nth-child(8) {
-    color: #ff1493;
+    color: #B3DDFF;
 }
 
 /* ================= FILTERS PAGE ================= */
