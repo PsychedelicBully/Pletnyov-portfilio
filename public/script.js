@@ -575,7 +575,7 @@ class PortfolioGallery {
         const ctx = canvas.getContext('2d');
 
         // Меньшее разрешение → пиксели крупнее
-        const width = 32;
+        const width = 8;
         const height = 32;
 
         canvas.width = width;
