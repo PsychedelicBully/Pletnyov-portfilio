@@ -570,7 +570,7 @@ a:hover {
 .nav-link:hover,
 .filter-tag:hover,
 .footer-link:hover {
-    border-bottom: 1px solid var(--link-hover-border);
+    border-bottom: 2px solid var(--link-hover-border);
 }
 
 /* === Единые отступы === */
