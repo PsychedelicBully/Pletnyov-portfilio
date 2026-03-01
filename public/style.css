@@ -57,7 +57,7 @@ header {
     left: 0;
     right: 0;
     z-index: 1000;
-    color: var(--header-bg);
+    background: var(--header-bg);
     backdrop-filter: blur(30px);
     padding: 1rem 0;
 }

@@ -325,18 +325,19 @@
             }
 
 
-            async init() {
-                this.setupThemeToggle(); // добавить эту строку
-                if (!this.postId) return;
-                await this.fetchAllPosts();
-                const currentIndex = this.allPosts.findIndex(p =>
-                    String(p.id) === this.postId || p.id_string === this.postId
-                );
-                if (currentIndex === -1) {
-                    this.renderNotFound();
-                    return;
+            setupThemeToggle() {
+                const toggleBtn = document.getElementById('themeToggle');
+                if (!toggleBtn) return;
+                const savedTheme = localStorage.getItem('site-theme');
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-theme');
                 }
-                this.render(this.allPosts[currentIndex], currentIndex);
+                toggleBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('dark-theme');
+                    localStorage.setItem('site-theme',
+                        document.body.classList.contains('dark-theme') ? 'dark' : 'light'
+                    );
+                });
             }
 
             render(post, index) {
