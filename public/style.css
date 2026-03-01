@@ -57,7 +57,7 @@ header {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.382);
+    color: var(--header-bg);
     backdrop-filter: blur(30px);
     padding: 1rem 0;
 }
@@ -393,7 +393,6 @@ main {
 
 /* Footer */
 footer {
-    border-top: 1px solid #f0f0f0;
     padding: 2rem 0;
     margin-top: 2rem;
 }
