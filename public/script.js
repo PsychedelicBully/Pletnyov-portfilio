@@ -586,10 +586,8 @@ class PortfolioGallery {
         img.src = mediaEl.dataset.src;
 
         img.onload = () => {
-            // Рисуем уменьшенное изображение
+            // Рисуем уменьшенное изображение (сохраняем оригинальные цвета)
             ctx.drawImage(img, 0, 0, width, height);
-
-            ctx.putImageData(imageData, 0, 0);
 
             // Вставляем canvas перед media
             mediaEl.parentNode.insertBefore(canvas, mediaEl);

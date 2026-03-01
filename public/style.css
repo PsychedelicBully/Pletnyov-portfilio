@@ -795,7 +795,6 @@ body.dark-theme .theme-toggle .dark-icon {
 /* Bitmap placeholder виден сразу */
 .media-item canvas {
     opacity: 1;
-    filter: contrast(1.2) brightness(1.1);
 }
 
 /* Когда основное изображение/видео загрузилось */
