@@ -589,18 +589,6 @@ class PortfolioGallery {
             // Рисуем уменьшенное изображение
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Усиление контраста / posterize эффект
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-
-            for (let i = 0; i < data.length; i += 4) {
-                // Усиление контраста
-                data[i] = data[i] < 128 ? 0 : 255;     // R
-                data[i + 1] = data[i + 1] < 128 ? 0 : 255; // G
-                data[i + 2] = data[i + 2] < 128 ? 0 : 255; // B
-                // Alpha оставляем как есть
-            }
-
             ctx.putImageData(imageData, 0, 0);
 
             // Вставляем canvas перед media
