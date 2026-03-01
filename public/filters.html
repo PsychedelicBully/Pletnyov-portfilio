@@ -6,6 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pletnyov — Filters</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Мобильная версия для страницы фильтров */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 0 1rem;
+            }
+
+            .header-left {
+                width: auto;
+                justify-content: flex-start;
+            }
+
+            .header-right {
+                width: auto;
+                justify-content: flex-end;
+                gap: 0.5rem;
+            }
+
+            .header-right .filters-link {
+                display: none;
+            }
+
+            .header-right .search-box,
+            .header-right .theme-toggle {
+                display: block;
+            }
+
+            .search-input {
+                width: 100px;
+            }
+
+            .search-input:focus {
+                width: 140px;
+            }
+        }
+    </style>
 </head>
 
 <body>
