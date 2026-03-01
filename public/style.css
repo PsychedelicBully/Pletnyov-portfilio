@@ -556,7 +556,7 @@ h3,
 
 .post-title {
     font-weight: 400;
- }   
+}
 
 /* Ссылки — подчёркивание при наведении */
 a {
@@ -807,4 +807,18 @@ body.dark-theme .theme-toggle .dark-icon {
 
 .media-item.loaded canvas {
     opacity: 0;
+}
+
+/* ===== MOBILE HEADER ONLY ON HOME ===== */
+@media (max-width: 768px) {
+
+    body.home-page header {
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+
+    body.home-page header h1 {
+        font-size: 28px;
+    }
+
 }
