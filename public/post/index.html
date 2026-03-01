@@ -273,6 +273,7 @@
             }
 
             async init() {
+                this.setupThemeToggle();
                 if (!this.postId) return;
                 await this.fetchAllPosts();
                 const currentIndex = this.allPosts.findIndex(p =>
