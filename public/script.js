@@ -576,7 +576,7 @@ class PortfolioGallery {
 
         // Меньшее разрешение → пиксели крупнее
         const width = 8;
-        const height = 32;
+        const height = 8;
 
         canvas.width = width;
         canvas.height = height;
