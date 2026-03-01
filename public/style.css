@@ -59,7 +59,7 @@ header {
     z-index: 1000;
     background: var(--header-bg);
     backdrop-filter: blur(30px);
-    padding: 0.3rem 0;
+    padding: 0.2rem 0;
 }
 
 .header-content {
