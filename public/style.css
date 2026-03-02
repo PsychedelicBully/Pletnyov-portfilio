@@ -820,37 +820,20 @@ body.dark-theme .theme-toggle .dark-icon {
     }
 }
 
-/* ===== DOT PLACEHOLDER ===== */
-
-.media-item {
+.media-item img,
+.media-item video {
     position: relative;
-    overflow: hidden;
-    background: #fff;
+    z-index: 2;
+
+    opacity: 0;
+    transform: scale(1.03);
+    transition: opacity 0.6s ease, transform 0.8s ease;
 }
 
-/* слой с точками */
-.media-item::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-
-    background-image:
-        radial-gradient(#000 0.8px, transparent 0.8px);
-    background-size: 6px 6px;
-
-    opacity: 0.4;
-
-    animation: noiseMove 1.2s linear infinite;
-}
-
-/* анимация движения шума */
-@keyframes noiseMove {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(-1px,1px); }
-    50% { transform: translate(1px,-1px); }
-    75% { transform: translate(-1px,-1px); }
-    100% { transform: translate(0,0); }
+.media-item.loaded img,
+.media-item.loaded video {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* медиа сверху */
@@ -875,4 +858,10 @@ body.dark-theme .theme-toggle .dark-icon {
 .media-item.loaded::before {
     opacity: 0;
     transition: opacity 0.4s ease;
+}
+
+.media-item.loaded::before,
+.media-item.loaded::after {
+    opacity: 0;
+    transition: opacity 0.4s ease 0.1s; /* ← 100ms задержка */
 }
