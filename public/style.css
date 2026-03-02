@@ -25,8 +25,8 @@
 body.dark-theme {
     --bg-color: #3E404F;
     --text-color: #C0E2FF;
-    --text-secondary: #67B8FF;
-    --text-tertiary: #67B8FF;
+    --text-secondary: #C0E2FF;
+    --text-tertiary: #C0E2FF;
     --border-color: #333333;
     --border-light: #2a2a2a;
     --header-bg: #3e404f46;
@@ -818,4 +818,61 @@ body.dark-theme .theme-toggle .dark-icon {
     .header-content {
         width: 100%;
     }
+}
+
+/* ===== DOT PLACEHOLDER ===== */
+
+.media-item {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* слой с точками */
+.media-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    background-image:
+        radial-gradient(#000 0.8px, transparent 0.8px);
+    background-size: 6px 6px;
+
+    opacity: 0.4;
+
+    animation: noiseMove 1.2s linear infinite;
+}
+
+/* анимация движения шума */
+@keyframes noiseMove {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(-1px,1px); }
+    50% { transform: translate(1px,-1px); }
+    75% { transform: translate(-1px,-1px); }
+    100% { transform: translate(0,0); }
+}
+
+/* медиа сверху */
+.media-item img,
+.media-item video {
+    position: relative;
+    z-index: 2;
+
+    opacity: 0;
+    transform: scale(1.03);
+    transition: opacity 0.6s ease, transform 0.8s ease;
+}
+
+/* когда загрузилось */
+.media-item.loaded img,
+.media-item.loaded video {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* скрываем точки */
+.media-item.loaded::before {
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }

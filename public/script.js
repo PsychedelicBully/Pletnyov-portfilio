@@ -543,9 +543,6 @@ class PortfolioGallery {
                 const media = container.querySelector('img, video');
                 if (!media || !media.dataset.src) return;
 
-                // Создаём bitmap placeholder
-                const placeholder = this.createBitmapPlaceholder(media);
-
                 media.src = media.dataset.src;
 
                 if (media.tagName === 'VIDEO') {
@@ -567,33 +564,6 @@ class PortfolioGallery {
         }, {
             rootMargin: '200px'
         });
-    }
-
-    // Создание bitmap placeholder для картинки
-    createBitmapPlaceholder(mediaEl) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // Меньшее разрешение → пиксели крупнее
-        const width = 8;
-        const height = 8;
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = mediaEl.dataset.src;
-
-        img.onload = () => {
-            // Рисуем уменьшенное изображение (сохраняем оригинальные цвета)
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Вставляем canvas перед media
-            mediaEl.parentNode.insertBefore(canvas, mediaEl);
-        };
-
-        return canvas;
     }
 
     observeMedia() {
