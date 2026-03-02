@@ -9,9 +9,9 @@
 :root {
     /* Светлая тема (по умолчанию) */
     --bg-color: #ffffff;
-    --text-color: #000000;
-    --text-secondary: #666666;
-    --text-tertiary: #999999;
+    --text-color: #1A2732;
+    --text-secondary: #8AC8FE;
+    --text-tertiary: #8AC8FE;
     --border-color: #eaeaea;
     --border-light: #f0f0f0;
     --header-bg: rgba(255, 255, 255, 0.382);
