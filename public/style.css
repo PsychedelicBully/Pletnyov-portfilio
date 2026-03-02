@@ -24,7 +24,7 @@
 /* Тёмная тема */
 body.dark-theme {
     --bg-color: #3E404F;
-    --text-color: #ffffff;
+    --text-color: #C0E2FF;
     --text-secondary: #aaaaaa;
     --text-tertiary: #777777;
     --border-color: #333333;
