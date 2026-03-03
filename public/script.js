@@ -543,16 +543,13 @@ class PortfolioGallery {
                 if (!media || !media.dataset.src) return;
 
                 const startTime = performance.now();
-                const minDuration = 1200;
+                const minDuration = 1400;
 
-                // === Фон под тему ===
                 const isDark = document.body.classList.contains('dark-theme');
                 container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
                 container.style.position = 'relative';
 
-                // === Canvas ===
                 const canvas = document.createElement('canvas');
-                canvas.className = 'division-canvas';
                 Object.assign(canvas.style, {
                     position: 'absolute',
                     top: 0,
@@ -580,24 +577,21 @@ class PortfolioGallery {
                 const ro = new ResizeObserver(resizeCanvas);
                 ro.observe(container);
 
-                // === Частицы ===
                 const particles = [];
                 const color = isDark ? '#C0E2FF' : '#1A2732';
 
                 function createCell(x, y) {
                     return {
                         x, y,
-                        r: 0.5,          // стартовый размер очень маленький
-                        phase: 0,        // фаза роста/деления
-                        vx: 0, vy: 0,
-                        dividing: false,
-                        splitTime: 0
+                        r: 0.5,
+                        phase: 'grow', // grow → stretch → split
+                        startTime: performance.now(),
+                        progress: 0
                     };
                 }
 
-                // начальные точки
-                const initialCount = 4;
-                for (let i = 0; i < initialCount; i++) {
+                // стартовые клетки
+                for (let i = 0; i < 5; i++) {
                     particles.push(
                         createCell(
                             canvas.width * Math.random(),
@@ -606,102 +600,109 @@ class PortfolioGallery {
                     );
                 }
 
+                function easeInOut(t) {
+                    return t < 0.5
+                        ? 2 * t * t
+                        : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                }
+
                 let animationFrame;
+
                 function draw() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    particles.forEach((p, idx) => {
-                        // Плавный рост
-                        if (p.r < 15 && !p.dividing) {
-                            p.r += 0.08;
+                    particles.forEach((p, index) => {
+
+                        const now = performance.now();
+                        const elapsed = now - p.startTime;
+
+                        // === СТАДИЯ РОСТА ===
+                        if (p.phase === 'grow') {
+                            p.r += 0.12;
+
+                            if (p.r > 10) {
+                                p.phase = 'stretch';
+                                p.startTime = now;
+                            }
+
+                            drawCircle(p.x, p.y, p.r);
                         }
 
-                        // Когда достаточный размер — начинаем деление
-                        if (p.r > 10 && !p.dividing) {
-                            p.dividing = true;
-                            p.splitTime = performance.now();
-                        }
+                        // === СТАДИЯ ВЫТЯГИВАНИЯ ===
+                        else if (p.phase === 'stretch') {
+                            const t = Math.min(elapsed / 600, 1);
+                            const e = easeInOut(t);
 
-                        if (p.dividing) {
-                            // Эффект "пульсации" перед делением
-                            const elapsed = performance.now() - p.splitTime;
-                            p.r += Math.sin(elapsed * 0.003) * 0.2;
+                            const stretchX = p.r + e * p.r * 0.6;
+                            const stretchY = p.r - e * p.r * 0.3;
 
-                            // После некоторого времени создаём 2 дочерние
-                            if (elapsed > 800) {
-                                const childA = createCell(p.x - p.r * 0.5, p.y);
-                                const childB = createCell(p.x + p.r * 0.5, p.y);
+                            drawEllipse(p.x, p.y, stretchX, stretchY);
 
-                                childA.vx = -0.2;
-                                childB.vx = 0.2;
-
-                                particles.splice(idx, 1, childA, childB);
-                                return;
+                            if (t >= 1) {
+                                p.phase = 'split';
+                                p.startTime = now;
                             }
                         }
 
-                        // Плавное движение (очень медленное)
-                        p.x += p.vx * 0.02;
-                        p.y += p.vy * 0.02;
+                        // === СТАДИЯ РАЗДЕЛЕНИЯ ===
+                        else if (p.phase === 'split') {
+                            const t = Math.min(elapsed / 600, 1);
+                            const e = easeInOut(t);
 
-                        // Мягкое притяжение к центру всех точек
-                        let avgX = 0, avgY = 0;
-                        particles.forEach(o => {
-                            avgX += o.x;
-                            avgY += o.y;
-                        });
-                        avgX /= particles.length;
-                        avgY /= particles.length;
+                            const offset = e * p.r;
 
-                        p.vx += (avgX - p.x) * 0.0002;
-                        p.vy += (avgY - p.y) * 0.0002;
+                            drawCircle(p.x - offset, p.y, p.r * 0.8);
+                            drawCircle(p.x + offset, p.y, p.r * 0.8);
 
-                        // Отталкивание от границ
-                        if (p.x < p.r) p.vx += 0.1;
-                        if (p.x > canvas.width - p.r) p.vx -= 0.1;
-                        if (p.y < p.r) p.vy += 0.1;
-                        if (p.y > canvas.height - p.r) p.vy -= 0.1;
+                            if (t >= 1) {
+                                particles.splice(index, 1,
+                                    createCell(p.x - p.r, p.y),
+                                    createCell(p.x + p.r, p.y)
+                                );
+                            }
+                        }
 
-                        // Рисуем точку
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                        ctx.fillStyle = color;
-                        ctx.fill();
+                        // мягкое ограничение внутри контейнера
+                        const margin = 20;
+                        p.x = Math.max(margin, Math.min(canvas.width - margin, p.x));
+                        p.y = Math.max(margin, Math.min(canvas.height - margin, p.y));
                     });
 
                     animationFrame = requestAnimationFrame(draw);
                 }
+
+                function drawCircle(x, y, r) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                }
+
+                function drawEllipse(x, y, rx, ry) {
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                }
+
                 draw();
 
-                
-
-                // === Загрузка медиа ===
-                const stagger = Math.random() * 300;
+                // Загружаем медиа чуть позже, чтобы деление успело начаться
                 setTimeout(() => {
                     media.src = media.dataset.src;
                     if (media.tagName === 'VIDEO') {
                         media.load();
                         media.play().catch(() => { });
                     }
-                }, stagger);
-
-                media.src = media.dataset.src;
-                if (media.tagName === 'VIDEO') {
-                    media.load();
-                    media.play().catch(() => { });
-                }
+                }, 900);
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
                     const delay = Math.max(0, minDuration - elapsed);
                     setTimeout(() => {
                         cancelAnimationFrame(animationFrame);
-                        container.classList.add('loaded');
-                        canvas.classList.add('fade-out');
-                        setTimeout(() => {
-                            canvas.remove();
-                            ro.disconnect();
-                        }, 500);
+                        canvas.remove();
+                        ro.disconnect();
                     }, delay);
                 };
 
