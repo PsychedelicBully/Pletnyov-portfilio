@@ -543,6 +543,7 @@ class PortfolioGallery {
                 const media = container.querySelector('img, video');
                 if (!media || !media.dataset.src) return;
 
+                // ставим src
                 media.src = media.dataset.src;
 
                 if (media.tagName === 'VIDEO') {
@@ -552,12 +553,13 @@ class PortfolioGallery {
 
                 const loaded = () => {
                     container.classList.add('loaded');
-                    // Убираем canvas через плавный fade
-                    if (placeholder) setTimeout(() => placeholder.remove(), 600);
                 };
 
-                if (media.tagName === 'IMG') media.onload = loaded;
-                else media.onloadeddata = loaded;
+                if (media.tagName === 'IMG') {
+                    media.onload = loaded;
+                } else {
+                    media.onloadeddata = loaded;
+                }
 
                 obs.unobserve(container);
             });
