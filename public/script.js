@@ -544,7 +544,7 @@ class PortfolioGallery {
                 if (!media || !media.dataset.src) return;
 
                 const startTime = performance.now();
-                const minDuration = 900;
+                const minDuration = 1200;
 
                 /* ========= CANVAS ========= */
 
@@ -573,7 +573,8 @@ class PortfolioGallery {
                 function drawNoise() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    const currentDots = maxDots * progress;
+                    const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+                    const currentDots = maxDots * eased;
 
                     for (let i = 0; i < currentDots; i++) {
                         const x = Math.random() * canvas.width;
@@ -594,6 +595,17 @@ class PortfolioGallery {
                 drawNoise();
 
                 /* ========= LOAD MEDIA ========= */
+
+                const stagger = Math.random() * 300;
+
+                setTimeout(() => {
+                    media.src = media.dataset.src;
+
+                    if (media.tagName === 'VIDEO') {
+                        media.load();
+                        media.play().catch(() => { });
+                    }
+                }, stagger);
 
                 media.src = media.dataset.src;
 
@@ -630,7 +642,8 @@ class PortfolioGallery {
                 obs.unobserve(container);
             });
         }, {
-            rootMargin: '200px'
+            rootMargin: '0px 0px 150px 0px',
+            threshold: 0.15
         });
     }
 
