@@ -582,28 +582,27 @@ class PortfolioGallery {
                 // ===== PARTICLES =====
                 const particles = [];
                 const maxParticles = 500;
-                const baseSize = 1.2;
+                const baseSize = 1.5;
                 const maxSize = 6;
-                const branchChance = 0.05; // шанс создания ветви
+                const branchChance = 0.05;
                 const color = isDark ? '#C0E2FF' : '#1A2732';
 
                 function createParticle(x, y, r = baseSize) {
                     return {
                         x, y, r,
-                        vx: (Math.random() - 0.5) * 0.8,
-                        vy: (Math.random() - 0.5) * 0.8,
+                        vx: (Math.random() - 0.5) * 0.2, // медленное движение
+                        vy: (Math.random() - 0.5) * 0.2,
                         life: 0,
-                        branches: [],
                         canDivide: true
                     };
                 }
 
-                // стартовые кластеры
-                const clusterCount = 3 + Math.floor(Math.random() * 3);
+                // стартовые кластеры — сразу много точек для быстрого появления
+                const clusterCount = 5 + Math.floor(Math.random() * 5);
                 for (let i = 0; i < clusterCount; i++) {
                     const cx = Math.random() * canvas.width;
                     const cy = Math.random() * canvas.height;
-                    for (let j = 0; j < 8; j++) {
+                    for (let j = 0; j < 12; j++) {
                         particles.push(createParticle(
                             cx + (Math.random() - 0.5) * 20,
                             cy + (Math.random() - 0.5) * 20
@@ -616,60 +615,49 @@ class PortfolioGallery {
                 function drawOrganic() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    particles.forEach((p, idx) => {
-                        // рост
-                        if (p.r < maxSize) p.r += 0.2 + Math.random() * 0.15;
+                    particles.forEach(p => {
+                        // быстрый рост при появлении
+                        if (p.r < maxSize) p.r += 0.25 + Math.random() * 0.15;
 
-                        // движение с мягкой инерцией
+                        // медленное плавное движение
                         p.x += p.vx;
                         p.y += p.vy;
                         p.vx *= 0.98;
                         p.vy *= 0.98;
 
-                        // лёгкое притяжение к соседним
-                        particles.forEach((o, jdx) => {
-                            if (idx === jdx) return;
+                        // лёгкое притяжение к соседним частицам для кластеров
+                        particles.forEach(o => {
+                            if (o === p) return;
                             const dx = o.x - p.x;
                             const dy = o.y - p.y;
                             const dist = Math.sqrt(dx * dx + dy * dy);
                             if (dist > 0 && dist < 50) {
-                                const f = (50 - dist) * 0.015;
+                                const f = (50 - dist) * 0.01; // слабое притяжение
                                 p.vx += dx / dist * f;
                                 p.vy += dy / dist * f;
                             }
                         });
 
                         // отталкивание от стен
-                        if (p.x < p.r) p.vx += 0.5;
-                        if (p.x > canvas.width - p.r) p.vx -= 0.5;
-                        if (p.y < p.r) p.vy += 0.5;
-                        if (p.y > canvas.height - p.r) p.vy -= 0.5;
+                        if (p.x < p.r) p.vx += 0.3;
+                        if (p.x > canvas.width - p.r) p.vx -= 0.3;
+                        if (p.y < p.r) p.vy += 0.3;
+                        if (p.y > canvas.height - p.r) p.vy -= 0.3;
 
-                        // случайная дрожь
-                        p.vx += (Math.random() - 0.5) * 0.05;
-                        p.vy += (Math.random() - 0.5) * 0.05;
+                        // лёгкая случайная дрожь
+                        p.vx += (Math.random() - 0.5) * 0.02;
+                        p.vy += (Math.random() - 0.5) * 0.02;
 
                         // деление и ветвление
                         if (p.canDivide && p.r > 2.5 && particles.length < maxParticles && Math.random() < branchChance) {
                             const child = createParticle(p.x, p.y, p.r * 0.6);
-                            child.vx = p.vx + (Math.random() - 0.5) * 0.5;
-                            child.vy = p.vy + (Math.random() - 0.5) * 0.5;
+                            child.vx = p.vx + (Math.random() - 0.5) * 0.2;
+                            child.vy = p.vy + (Math.random() - 0.5) * 0.2;
                             p.canDivide = false;
-                            p.branches.push(child);
                             particles.push(child);
                         }
 
-                        // рисуем ветви
-                        p.branches.forEach(b => {
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(b.x, b.y);
-                            ctx.strokeStyle = color;
-                            ctx.lineWidth = 0.7;
-                            ctx.stroke();
-                        });
-
-                        // рисуем частицу
+                        // рисуем только частицу, без линий
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
