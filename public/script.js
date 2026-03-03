@@ -554,22 +554,34 @@ class PortfolioGallery {
                 canvas.style.width = '100%';
                 canvas.style.height = '100%';
                 canvas.style.pointerEvents = 'none';
-                canvas.style.zIndex = 1; // над media
+                canvas.style.zIndex = 1;
                 container.style.position = 'relative';
                 container.appendChild(canvas);
 
                 const ctx = canvas.getContext('2d');
 
+                // Функция корректного масштабирования canvas
                 const resize = () => {
-                    canvas.width = container.offsetWidth;
-                    canvas.height = container.offsetHeight;
+                    const rect = container.getBoundingClientRect();
+                    const dpr = window.devicePixelRatio || 1;
+
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+
+                    canvas.style.width = rect.width + 'px';
+                    canvas.style.height = rect.height + 'px';
+
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.scale(dpr, dpr);
                 };
                 resize();
-                window.addEventListener('resize', resize);
+
+                const ro = new ResizeObserver(resize);
+                ro.observe(container);
 
                 /* ========= PARTICLES ========= */
                 const particles = [];
-                const maxParticles = 200; // больше точек
+                const maxParticles = 200;
                 const baseSize = 1.5;
                 const maxSize = 8;
 
@@ -578,13 +590,13 @@ class PortfolioGallery {
                         x,
                         y,
                         r: baseSize,
-                        vx: (Math.random() - 0.5) * 0.5, // быстрее
+                        vx: (Math.random() - 0.5) * 0.5,
                         vy: (Math.random() - 0.5) * 0.5,
                         life: 0
                     };
                 }
 
-                // создаём несколько кластеров
+                // Кластеры
                 const clusters = [];
                 const clusterCount = 2 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < clusterCount; i++) {
@@ -594,7 +606,7 @@ class PortfolioGallery {
                     });
                 }
 
-                // начальные споры
+                // Стартовые споры
                 for (let i = 0; i < 5; i++) {
                     const c = clusters[Math.floor(Math.random() * clusters.length)];
                     particles.push(createParticle(
@@ -608,21 +620,20 @@ class PortfolioGallery {
                 function drawOrganic() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    // определяем цвет частиц по теме
                     const isDark = document.body.classList.contains('dark-theme');
                     const color = isDark ? '#C0E2FF' : '#1A2732';
 
                     particles.forEach((p, idx) => {
-                        // рост
+                        // Рост
                         if (p.r < maxSize) {
-                            p.r += 0.15 + Math.random() * 0.1; // быстрее рост
+                            p.r += 0.15 + Math.random() * 0.1;
                         }
 
-                        // движение
+                        // Движение
                         p.x += p.vx;
                         p.y += p.vy;
 
-                        // отталкивание от других точек
+                        // Отталкивание от других точек
                         particles.forEach((other, jdx) => {
                             if (idx === jdx) return;
                             const dx = other.x - p.x;
@@ -635,22 +646,22 @@ class PortfolioGallery {
                             }
                         });
 
-                        // отталкивание от границ контейнера
+                        // Отталкивание от границ
                         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
                         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-                        // небольшая случайная дрожь
+                        // Случайная дрожь
                         p.vx += (Math.random() - 0.5) * 0.05;
                         p.vy += (Math.random() - 0.5) * 0.05;
 
-                        // рисуем
+                        // Рисуем
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
                         ctx.fill();
                     });
 
-                    // добавляем новые частицы, пока не достигнем maxParticles
+                    // Добавляем новые частицы до max
                     if (particles.length < maxParticles && Math.random() < 0.15) {
                         const c = clusters[Math.floor(Math.random() * clusters.length)];
                         particles.push(createParticle(
@@ -689,7 +700,7 @@ class PortfolioGallery {
                         canvas.classList.add('fade-out');
                         setTimeout(() => {
                             canvas.remove();
-                            window.removeEventListener('resize', resize);
+                            ro.disconnect();
                         }, 500);
                     }, delay);
                 };
