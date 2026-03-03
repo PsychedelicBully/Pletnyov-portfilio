@@ -543,17 +543,17 @@ class PortfolioGallery {
                 if (!media || !media.dataset.src) return;
 
                 const startTime = performance.now();
-                const minDuration = 1400;
+                const minDuration = 1200;
 
                 const isDark = document.body.classList.contains('dark-theme');
                 container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
                 container.style.position = 'relative';
 
                 const canvas = document.createElement('canvas');
+                canvas.className = 'division-canvas';
                 Object.assign(canvas.style, {
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
+                    inset: 0,
                     width: '100%',
                     height: '100%',
                     pointerEvents: 'none',
@@ -570,9 +570,9 @@ class PortfolioGallery {
                     canvas.height = rect.height * dpr;
                     canvas.style.width = rect.width + 'px';
                     canvas.style.height = rect.height + 'px';
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
-                    ctx.scale(dpr, dpr);
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 }
+
                 resizeCanvas();
                 const ro = new ResizeObserver(resizeCanvas);
                 ro.observe(container);
@@ -580,30 +580,30 @@ class PortfolioGallery {
                 const particles = [];
                 const color = isDark ? '#C0E2FF' : '#1A2732';
 
-                function createCell(x, y) {
+                function createCell(x, y, r = 2) {
                     return {
-                        x, y,
-                        r: 0.5,
-                        phase: 'grow', // grow → stretch → split
-                        startTime: performance.now(),
-                        progress: 0
+                        x,
+                        y,
+                        r,
+                        baseR: r,
+                        phase: 0,
+                        life: 0
                     };
                 }
 
-                // стартовые клетки
-                for (let i = 0; i < 5; i++) {
+                // БЫСТРЫЙ старт — чтобы сразу был кластер
+                for (let i = 0; i < 8; i++) {
                     particles.push(
                         createCell(
-                            canvas.width * Math.random(),
-                            canvas.height * Math.random()
+                            canvas.width * 0.3 + Math.random() * canvas.width * 0.4,
+                            canvas.height * 0.3 + Math.random() * canvas.height * 0.4,
+                            2 + Math.random() * 2
                         )
                     );
                 }
 
-                function easeInOut(t) {
-                    return t < 0.5
-                        ? 2 * t * t
-                        : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                function ease(t) {
+                    return t * t * (3 - 2 * t);
                 }
 
                 let animationFrame;
@@ -611,58 +611,59 @@ class PortfolioGallery {
                 function draw() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    particles.forEach((p, index) => {
+                    particles.forEach((p, i) => {
 
-                        const now = performance.now();
-                        const elapsed = now - p.startTime;
+                        p.life += 0.02;
 
-                        // === СТАДИЯ РОСТА ===
-                        if (p.phase === 'grow') {
-                            p.r += 0.12;
+                        // органический микро-пульс
+                        const pulse = Math.sin(p.life * 3) * 0.3;
 
+                        // мягкий рост
+                        if (p.phase === 0) {
+                            p.r += 0.05;
                             if (p.r > 10) {
-                                p.phase = 'stretch';
-                                p.startTime = now;
+                                p.phase = 1;
+                                p.life = 0;
                             }
 
-                            drawCircle(p.x, p.y, p.r);
+                            drawCircle(p.x, p.y, p.r + pulse);
                         }
 
-                        // === СТАДИЯ ВЫТЯГИВАНИЯ ===
-                        else if (p.phase === 'stretch') {
-                            const t = Math.min(elapsed / 600, 1);
-                            const e = easeInOut(t);
+                        // вытягивание
+                        else if (p.phase === 1) {
+                            const t = Math.min(p.life, 1);
+                            const e = ease(t);
 
-                            const stretchX = p.r + e * p.r * 0.6;
-                            const stretchY = p.r - e * p.r * 0.3;
+                            const rx = p.r + e * p.r * 0.6;
+                            const ry = p.r - e * p.r * 0.4;
 
-                            drawEllipse(p.x, p.y, stretchX, stretchY);
+                            drawEllipse(p.x, p.y, rx, ry);
 
                             if (t >= 1) {
-                                p.phase = 'split';
-                                p.startTime = now;
+                                p.phase = 2;
+                                p.life = 0;
                             }
                         }
 
-                        // === СТАДИЯ РАЗДЕЛЕНИЯ ===
-                        else if (p.phase === 'split') {
-                            const t = Math.min(elapsed / 600, 1);
-                            const e = easeInOut(t);
+                        // разделение
+                        else if (p.phase === 2) {
+                            const t = Math.min(p.life, 1);
+                            const e = ease(t);
 
-                            const offset = e * p.r;
+                            const offset = e * p.r * 0.8;
 
-                            drawCircle(p.x - offset, p.y, p.r * 0.8);
-                            drawCircle(p.x + offset, p.y, p.r * 0.8);
+                            drawCircle(p.x - offset, p.y, p.r * 0.7);
+                            drawCircle(p.x + offset, p.y, p.r * 0.7);
 
                             if (t >= 1) {
-                                particles.splice(index, 1,
-                                    createCell(p.x - p.r, p.y),
-                                    createCell(p.x + p.r, p.y)
+                                particles.splice(i, 1,
+                                    createCell(p.x - p.r * 0.8, p.y, p.r * 0.7),
+                                    createCell(p.x + p.r * 0.8, p.y, p.r * 0.7)
                                 );
                             }
                         }
 
-                        // мягкое ограничение внутри контейнера
+                        // безопасные границы без скачков
                         const margin = 20;
                         p.x = Math.max(margin, Math.min(canvas.width - margin, p.x));
                         p.y = Math.max(margin, Math.min(canvas.height - margin, p.y));
@@ -687,22 +688,31 @@ class PortfolioGallery {
 
                 draw();
 
-                // Загружаем медиа чуть позже, чтобы деление успело начаться
+                // Загружаем медиа почти сразу
                 setTimeout(() => {
                     media.src = media.dataset.src;
                     if (media.tagName === 'VIDEO') {
                         media.load();
                         media.play().catch(() => { });
                     }
-                }, 900);
+                }, 400);
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
                     const delay = Math.max(0, minDuration - elapsed);
+
                     setTimeout(() => {
                         cancelAnimationFrame(animationFrame);
-                        canvas.remove();
-                        ro.disconnect();
+
+                        // ВАЖНО — вернуть эту строку
+                        container.classList.add('loaded');
+
+                        canvas.classList.add('fade-out');
+
+                        setTimeout(() => {
+                            canvas.remove();
+                            ro.disconnect();
+                        }, 500);
                     }, delay);
                 };
 
