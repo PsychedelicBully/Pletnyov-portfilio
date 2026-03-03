@@ -583,23 +583,22 @@ class PortfolioGallery {
                 // === Частицы ===
                 const particles = [];
                 const color = isDark ? '#C0E2FF' : '#1A2732';
-                const baseSize = 0.8;      // немного меньше
-                const maxSize = 10;        // максимальный размер при росте
-                const clusterPoints = 2;   // дополнительные точки роста
+                const baseSize = 0.8;      // меньший размер
+                const maxSize = 10;        // максимальный радиус
+                const extraPoints = 2;     // дополнительные точки роста
 
                 function createCell(x, y) {
                     return {
                         x, y,
                         r: baseSize,
                         vx: 0, vy: 0,
-                        phase: 0,
                         dividing: false,
                         splitTime: 0
                     };
                 }
 
-                // стартовые кластеры + дополнительные точки роста
-                const initialCount = 4 + clusterPoints;
+                // стартовые точки + дополнительные
+                const initialCount = 4 + extraPoints;
                 for (let i = 0; i < initialCount; i++) {
                     particles.push(
                         createCell(
@@ -627,15 +626,13 @@ class PortfolioGallery {
 
                         if (p.dividing) {
                             const elapsed = performance.now() - p.splitTime;
-                            p.r += Math.sin(elapsed * 0.006) * 0.25; // плавная пульсация
+                            p.r += Math.sin(elapsed * 0.006) * 0.25;
 
-                            // запускаем медиа после первой фазы деления
                             if (elapsed > 500 && !mediaLoaded) {
                                 mediaLoaded = true;
                                 loadMedia();
                             }
 
-                            // создаем дочерние частицы
                             if (elapsed > 800) {
                                 const childA = createCell(p.x - p.r * 0.5, p.y);
                                 const childB = createCell(p.x + p.r * 0.5, p.y);
@@ -646,11 +643,11 @@ class PortfolioGallery {
                             }
                         }
 
-                        // медленное плавное движение
+                        // мягкое движение
                         p.x += p.vx * 0.02;
                         p.y += p.vy * 0.02;
 
-                        // мягкое притяжение к центру всех точек
+                        // легкое притяжение к центру
                         let avgX = 0, avgY = 0;
                         particles.forEach(o => { avgX += o.x; avgY += o.y; });
                         avgX /= particles.length;
@@ -658,15 +655,20 @@ class PortfolioGallery {
                         p.vx += (avgX - p.x) * 0.0002;
                         p.vy += (avgY - p.y) * 0.0002;
 
-                        // безопасные границы: отталкиваем с учётом радиуса
-                        if (p.x - p.r < 0) p.vx += 0.3;
-                        if (p.x + p.r > canvas.width) p.vx -= 0.3;
-                        if (p.y - p.r < 0) p.vy += 0.3;
-                        if (p.y + p.r > canvas.height) p.vy -= 0.3;
+                        // безопасные границы с плавным отталкиванием
+                        const margin = p.r;
+                        if (p.x < margin) p.vx += (margin - p.x) * 0.05;
+                        if (p.x > canvas.width - margin) p.vx += (canvas.width - margin - p.x) * 0.05;
+                        if (p.y < margin) p.vy += (margin - p.y) * 0.05;
+                        if (p.y > canvas.height - margin) p.vy += (canvas.height - margin - p.y) * 0.05;
 
-                        // легкая случайная дрожь
+                        // небольшая случайная дрожь для органичности
                         p.vx += (Math.random() - 0.5) * 0.02;
                         p.vy += (Math.random() - 0.5) * 0.02;
+
+                        // damping для плавности
+                        p.vx *= 0.98;
+                        p.vy *= 0.98;
 
                         // рисуем частицу
                         ctx.beginPath();
