@@ -792,50 +792,27 @@ body.dark-theme .theme-toggle .dark-icon {
 .media-item {
     position: relative;
     overflow: hidden;
-    background: #fff;
-}
-
-.noise-canvas {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.noise-canvas.fade-out {
-    opacity: 0;
-    transition: opacity 0.45s ease 0.1s;
+    background: var(--media-bg);
 }
 
 .media-item img,
 .media-item video {
-    position: relative;
-    z-index: 2;
     width: 100%;
     height: auto;
 
     opacity: 0;
-    transform: scale(1.02);
-    transition: opacity 0.6s ease;
+    filter: blur(12px);
+    transform: scale(1.03);
+
+    transition:
+        opacity 0.8s ease,
+        filter 1.2s cubic-bezier(0.25, 0.1, 0.15, 1),
+        transform 1.2s cubic-bezier(0.25, 0.1, 0.15, 1);
 }
 
 .media-item.loaded img,
 .media-item.loaded video {
     opacity: 1;
+    filter: blur(0);
     transform: scale(1);
-}
-
-.media-item {
-    position: relative;
-    overflow: hidden;
-    background: var(--media-bg); /* Цвет фона во время загрузки */
-    will-change: filter, transform; /* Подсказка браузеру для оптимизации */
-}
-
-.media-item img,
-.media-item video {
-    display: block;
-    width: 100%;
-    height: auto;
-    backface-visibility: hidden; /* Исправляет артефакты в Safari */
 }

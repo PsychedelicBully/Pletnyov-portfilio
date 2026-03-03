@@ -542,39 +542,19 @@ class PortfolioGallery {
                 const media = container.querySelector('img, video');
 
                 if (!media) return;
-                if (container.dataset.loaded === "true") {
-                    obs.unobserve(container);
-                    return;
-                }
 
-                container.dataset.loaded = "true";
-
-                // 1. Устанавливаем начальные стили для имитации пикселизации
-                container.style.willChange = 'filter, transform';
-                container.style.filter = 'blur(6px) contrast(20) brightness(1.2)';
-                container.style.transform = 'scale(1.02)';
-
-                // 2. Загружаем медиа
                 if (media.dataset.src) {
                     media.src = media.dataset.src;
                 }
 
-                const finish = () => {
-                    // 3. Плавно убираем эффекты
-                    container.style.transition = 'filter 1.2s cubic-bezier(0.25, 0.1, 0.15, 1), transform 1.2s cubic-bezier(0.25, 0.1, 0.15, 1)';
-                    container.style.filter = 'blur(0) contrast(1) brightness(1)';
-                    container.style.transform = 'scale(1)';
+                if (media.tagName === 'VIDEO') {
+                    media.play().catch(() => { });
+                }
 
-                    // 4. Очищаем после анимации
-                    const cleanup = () => {
-                        container.style.transition = '';
-                        container.style.willChange = '';
-                        container.classList.add('loaded');
-                    };
-                    container.addEventListener('transitionend', cleanup, { once: true });
+                const finish = () => {
+                    container.classList.add('loaded');
                 };
 
-                // Ждём загрузки медиа
                 if (media.tagName === 'IMG') {
                     if (media.complete) finish();
                     else media.onload = finish;
@@ -586,9 +566,7 @@ class PortfolioGallery {
                 obs.unobserve(container);
             });
         }, {
-            root: null,
-            rootMargin: '0px 0px 200px 0px',
-            threshold: 0.1
+            rootMargin: '0px 0px 200px 0px'
         });
     }
 
