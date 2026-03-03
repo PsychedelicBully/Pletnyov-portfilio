@@ -549,9 +549,9 @@ class PortfolioGallery {
 
                 container.dataset.loaded = "true";
 
-                // 1. Устанавливаем начальные пиксельные стили для контейнера
+                // 1. Устанавливаем начальные стили для имитации пикселизации
                 container.style.willChange = 'filter, transform';
-                container.style.filter = 'blur(20px) contrast(200%) brightness(1.5)';
+                container.style.filter = 'blur(6px) contrast(20) brightness(1.2)';
                 container.style.transform = 'scale(1.02)';
 
                 // 2. Загружаем медиа
