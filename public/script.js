@@ -563,10 +563,12 @@ class PortfolioGallery {
                 window.addEventListener('resize', resize);
 
                 let progress = 0;
+                const growSpeed = 0.008; // в 4 раза медленнее
                 let animationFrame;
 
                 const maxDots = (canvas.width * canvas.height) / 500;
-                const dotSize = 3; // в 5 раз крупнее
+                const dotSize = 6; // в 5 раз крупнее
+
 
                 function drawNoise() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -584,7 +586,7 @@ class PortfolioGallery {
                     }
 
                     if (progress < 1) {
-                        progress += 0.03;
+                        progress += growSpeed;
                         animationFrame = requestAnimationFrame(drawNoise);
                     }
                 }
