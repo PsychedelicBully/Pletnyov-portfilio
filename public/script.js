@@ -583,20 +583,23 @@ class PortfolioGallery {
                 // === Частицы ===
                 const particles = [];
                 const color = isDark ? '#C0E2FF' : '#1A2732';
+                const baseSize = 0.8;      // немного меньше
+                const maxSize = 10;        // максимальный размер при росте
+                const clusterPoints = 2;   // дополнительные точки роста
 
                 function createCell(x, y) {
                     return {
                         x, y,
-                        r: 0.5,          // стартовый размер очень маленький
-                        phase: 0,        // фаза роста/деления
+                        r: baseSize,
                         vx: 0, vy: 0,
+                        phase: 0,
                         dividing: false,
                         splitTime: 0
                     };
                 }
 
-                // начальные точки
-                const initialCount = 4;
+                // стартовые кластеры + дополнительные точки роста
+                const initialCount = 4 + clusterPoints;
                 for (let i = 0; i < initialCount; i++) {
                     particles.push(
                         createCell(
@@ -607,88 +610,65 @@ class PortfolioGallery {
                 }
 
                 let animationFrame;
+                let mediaLoaded = false;
+
                 function draw() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                     particles.forEach((p, idx) => {
+                        // ускоренный рост
+                        if (p.r < maxSize && !p.dividing) p.r += 0.35;
 
-                        // Ускоренный рост начальных кластеров
-                        if (p.r < 12 && !p.dividing) p.r += 0.5;  // быстрее чем раньше
-
-                        // Деление клеток (плавное)
-                        if (p.r > 10 && !p.dividing) {
+                        // деление клеток
+                        if (p.r > 7 && !p.dividing) {
                             p.dividing = true;
                             p.splitTime = performance.now();
                         }
 
                         if (p.dividing) {
                             const elapsed = performance.now() - p.splitTime;
-                            p.r += Math.sin(elapsed * 0.006) * 0.3; // плавная пульсация
-                            if (elapsed > 500 && !mediaLoaded) {   // как только первая фаза деления прошла
+                            p.r += Math.sin(elapsed * 0.006) * 0.25; // плавная пульсация
+
+                            // запускаем медиа после первой фазы деления
+                            if (elapsed > 500 && !mediaLoaded) {
                                 mediaLoaded = true;
-                                loadMedia();                        // запускаем медиа
+                                loadMedia();
                             }
-                            if (elapsed > 900) {
-                                const childA = createCell(p.x - p.r * 0.5, p.y);
-                                const childB = createCell(p.x + p.r * 0.5, p.y);
-                                childA.vx = -0.2; childB.vx = 0.2;
-                                particles.splice(idx, 1, childA, childB);
-                                return;
-                            }
-                        }
 
-                        // Плавный рост
-                        if (p.r < 15 && !p.dividing) {
-                            p.r += 0.08;
-                        }
-
-                        // Когда достаточный размер — начинаем деление
-                        if (p.r > 10 && !p.dividing) {
-                            p.dividing = true;
-                            p.splitTime = performance.now();
-                        }
-
-                        if (p.dividing) {
-                            // Эффект "пульсации" перед делением
-                            const elapsed = performance.now() - p.splitTime;
-                            p.r += Math.sin(elapsed * 0.003) * 0.2;
-
-                            // После некоторого времени создаём 2 дочерние
+                            // создаем дочерние частицы
                             if (elapsed > 800) {
                                 const childA = createCell(p.x - p.r * 0.5, p.y);
                                 const childB = createCell(p.x + p.r * 0.5, p.y);
-
                                 childA.vx = -0.2;
                                 childB.vx = 0.2;
-
                                 particles.splice(idx, 1, childA, childB);
                                 return;
                             }
                         }
 
-                        // Плавное движение (очень медленное)
+                        // медленное плавное движение
                         p.x += p.vx * 0.02;
                         p.y += p.vy * 0.02;
 
-                        // Мягкое притяжение к центру всех точек
+                        // мягкое притяжение к центру всех точек
                         let avgX = 0, avgY = 0;
-                        particles.forEach(o => {
-                            avgX += o.x;
-                            avgY += o.y;
-                        });
+                        particles.forEach(o => { avgX += o.x; avgY += o.y; });
                         avgX /= particles.length;
                         avgY /= particles.length;
-
                         p.vx += (avgX - p.x) * 0.0002;
                         p.vy += (avgY - p.y) * 0.0002;
 
-                        // Отталкивание от границ
-                        if (p.x < p.r) p.vx += 0.1;
-                        if (p.x > canvas.width - p.r) p.vx -= 0.1;
-                        if (p.y < p.r) p.vy += 0.1;
-                        if (p.y > canvas.height - p.r) p.vy -= 0.1;
+                        // безопасные границы: отталкиваем с учётом радиуса
+                        if (p.x - p.r < 0) p.vx += 0.3;
+                        if (p.x + p.r > canvas.width) p.vx -= 0.3;
+                        if (p.y - p.r < 0) p.vy += 0.3;
+                        if (p.y + p.r > canvas.height) p.vy -= 0.3;
 
-                        // Рисуем точку
+                        // легкая случайная дрожь
+                        p.vx += (Math.random() - 0.5) * 0.02;
+                        p.vy += (Math.random() - 0.5) * 0.02;
+
+                        // рисуем частицу
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
@@ -697,25 +677,19 @@ class PortfolioGallery {
 
                     animationFrame = requestAnimationFrame(draw);
                 }
-                draw();
 
-
-
-                // === Загрузка медиа ===
-                const stagger = Math.random() * 300;
-                setTimeout(() => {
-                    media.src = media.dataset.src;
-                    if (media.tagName === 'VIDEO') {
-                        media.load();
-                        media.play().catch(() => { });
-                    }
-                }, stagger);
-
-                media.src = media.dataset.src;
-                if (media.tagName === 'VIDEO') {
-                    media.load();
-                    media.play().catch(() => { });
+                function loadMedia() {
+                    const stagger = Math.random() * 300;
+                    setTimeout(() => {
+                        media.src = media.dataset.src;
+                        if (media.tagName === 'VIDEO') {
+                            media.load();
+                            media.play().catch(() => { });
+                        }
+                    }, stagger);
                 }
+
+                draw();
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
