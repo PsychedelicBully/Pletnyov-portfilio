@@ -545,7 +545,35 @@ class PortfolioGallery {
 
                 const startTime = performance.now();
 
-                // ставим src
+                /* ===== СОЗДАЁМ NOISE LAYER ===== */
+
+                const seed = Math.floor(Math.random() * 1000);
+
+                const noise = document.createElement('div');
+                noise.className = 'noise-layer';
+
+                noise.style.backgroundImage = `
+                url("data:image/svg+xml;utf8,
+                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+                <filter id='n'>
+                <feTurbulence type='fractalNoise'
+                              baseFrequency='0.8'
+                              numOctaves='1'
+                              seed='${seed}'/>
+                <feColorMatrix type='matrix'
+                    values='0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 25 -15'/>
+                </filter>
+                <rect width='100%' height='100%' filter='url(%23n)'/>
+                </svg>")
+            `;
+
+                container.appendChild(noise);
+
+                /* ===== LOAD MEDIA ===== */
+
                 media.src = media.dataset.src;
 
                 if (media.tagName === 'VIDEO') {
@@ -556,17 +584,19 @@ class PortfolioGallery {
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
                     const minDuration = 700;
-
                     const delay = Math.max(0, minDuration - elapsed);
 
                     setTimeout(() => {
                         container.classList.add('loaded');
+                        noise.classList.add('fade-out');
+
+                        setTimeout(() => noise.remove(), 500);
                     }, delay);
                 };
 
-                // ВАЖНО — привязываем событие
                 if (media.tagName === 'IMG') {
-                    media.onload = loaded;
+                    if (media.complete) loaded();
+                    else media.onload = loaded;
                 } else {
                     media.onloadeddata = loaded;
                 }
