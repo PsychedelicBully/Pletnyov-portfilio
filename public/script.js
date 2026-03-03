@@ -536,13 +536,21 @@ class PortfolioGallery {
     setupLazyObserver() {
         this.observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
+
                 if (!entry.isIntersecting) return;
 
                 const container = entry.target;
                 const media = container.querySelector('img, video');
-                if (!media || !media.dataset.src) return;
 
-                container.dataset.loading = "true";
+                if (!media) return;
+
+                // если уже загружено — не трогаем
+                if (container.dataset.loaded === "true") {
+                    obs.unobserve(container);
+                    return;
+                }
+
+                container.dataset.loaded = "true";
 
                 const isDark = document.body.classList.contains('dark-theme');
                 container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
@@ -555,8 +563,8 @@ class PortfolioGallery {
                     pointerEvents: 'none',
                     zIndex: 1
                 });
-                container.appendChild(canvas);
 
+                container.appendChild(canvas);
                 const ctx = canvas.getContext('2d');
 
                 function resize() {
@@ -579,15 +587,15 @@ class PortfolioGallery {
                 function create(x, y, r = 4) {
                     return {
                         x, y,
-                        vx: (Math.random() - 0.5) * 0.3,
-                        vy: (Math.random() - 0.5) * 0.3,
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.2,
                         r,
-                        phase: 0,
-                        life: 0
+                        life: 0,
+                        phase: 0
                     };
                 }
 
-                // стартовая клетка — одна
+                // стартуем из центра
                 particles.push(create(canvas.width / 2, canvas.height / 2, 5));
 
                 function ease(t) {
@@ -601,55 +609,46 @@ class PortfolioGallery {
 
                     particles.forEach((p, i) => {
 
-                        p.life += 0.015;
-
-                        // лёгкое притяжение к центру
-                        const cx = canvas.width / 2;
-                        const cy = canvas.height / 2;
-                        p.vx += (cx - p.x) * 0.00002;
-                        p.vy += (cy - p.y) * 0.00002;
-
+                        p.life += 0.02;
                         p.x += p.vx;
                         p.y += p.vy;
 
-                        // мягкий отскок от стен
-                        const margin = p.r + 4;
+                        // мягкий отскок
+                        const margin = p.r + 2;
                         if (p.x < margin || p.x > canvas.width - margin) p.vx *= -0.8;
                         if (p.y < margin || p.y > canvas.height - margin) p.vy *= -0.8;
 
-                        // рост
                         if (p.phase === 0) {
-                            p.r += 0.05;
-                            if (p.r > 12 && particles.length < 24) {
+                            p.r += 0.08;
+
+                            if (p.r > 10 && particles.length < 20) {
                                 p.phase = 1;
                                 p.life = 0;
                             }
-                            drawCircle(p.x, p.y, p.r);
-                        }
 
-                        // деление
-                        else if (p.phase === 1) {
+                            draw(p.x, p.y, p.r);
+                        }
+                        else {
                             const t = Math.min(p.life, 1);
                             const e = ease(t);
-                            const offset = e * p.r * 0.8;
+                            const offset = e * p.r * 0.7;
 
-                            drawCircle(p.x - offset, p.y, p.r * 0.8);
-                            drawCircle(p.x + offset, p.y, p.r * 0.8);
+                            draw(p.x - offset, p.y, p.r * 0.7);
+                            draw(p.x + offset, p.y, p.r * 0.7);
 
                             if (t >= 1) {
                                 particles.splice(i, 1,
-                                    create(p.x - p.r, p.y, p.r * 0.7),
-                                    create(p.x + p.r, p.y, p.r * 0.7)
+                                    create(p.x - p.r, p.y, p.r * 0.6),
+                                    create(p.x + p.r, p.y, p.r * 0.6)
                                 );
                             }
                         }
-
                     });
 
                     frame = requestAnimationFrame(animate);
                 }
 
-                function drawCircle(x, y, r) {
+                function draw(x, y, r) {
                     ctx.beginPath();
                     ctx.arc(x, y, r, 0, Math.PI * 2);
                     ctx.fillStyle = color;
@@ -658,23 +657,26 @@ class PortfolioGallery {
 
                 animate();
 
-                // загрузка медиа позже
-                setTimeout(() => {
+                // ВАЖНО — назначаем src СРАЗУ
+                if (media.dataset.src) {
                     media.src = media.dataset.src;
-                    if (media.tagName === 'VIDEO') {
-                        media.load();
-                        media.play().catch(() => { });
-                    }
-                }, 1000);
+                }
+
+                if (media.tagName === 'VIDEO') {
+                    media.load();
+                    media.play().catch(() => { });
+                }
 
                 const finish = () => {
                     container.classList.add('loaded');
+
                     cancelAnimationFrame(frame);
                     canvas.style.opacity = '0';
+
                     setTimeout(() => {
                         canvas.remove();
                         ro.disconnect();
-                    }, 400);
+                    }, 300);
                 };
 
                 if (media.tagName === 'IMG') {
@@ -688,8 +690,8 @@ class PortfolioGallery {
             });
         }, {
             root: null,
-            rootMargin: '0px',
-            threshold: 0.6
+            rootMargin: '0px 0px 200px 0px', // мягкий preload
+            threshold: 0.1
         });
     }
 
