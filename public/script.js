@@ -567,7 +567,7 @@ class PortfolioGallery {
                 const particles = [];
                 const maxParticles = 140;
                 const baseSize = 2;
-                const maxSize = 8;
+                const maxSize = 15;
 
                 function createParticle(x, y) {
                     return {
