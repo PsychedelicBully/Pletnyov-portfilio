@@ -555,7 +555,7 @@ class PortfolioGallery {
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
-                    const minDuration = 400;
+                    const minDuration = 700;
 
                     const delay = Math.max(0, minDuration - elapsed);
 
