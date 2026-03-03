@@ -536,7 +536,6 @@ class PortfolioGallery {
     setupLazyObserver() {
         this.observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
-
                 if (!entry.isIntersecting) return;
 
                 const container = entry.target;
@@ -547,9 +546,16 @@ class PortfolioGallery {
                 const minDuration = 1200;
 
                 /* ========= CANVAS ========= */
-
                 const canvas = document.createElement('canvas');
                 canvas.className = 'noise-canvas';
+                canvas.style.position = 'absolute';
+                canvas.style.top = 0;
+                canvas.style.left = 0;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.pointerEvents = 'none';
+                canvas.style.zIndex = 1; // над media
+                container.style.position = 'relative';
                 container.appendChild(canvas);
 
                 const ctx = canvas.getContext('2d');
@@ -558,33 +564,29 @@ class PortfolioGallery {
                     canvas.width = container.offsetWidth;
                     canvas.height = container.offsetHeight;
                 };
-
                 resize();
                 window.addEventListener('resize', resize);
 
                 /* ========= PARTICLES ========= */
-
                 const particles = [];
-                const maxParticles = 140;
-                const baseSize = 2;
-                const maxSize = 15;
+                const maxParticles = 200; // больше точек
+                const baseSize = 1.5;
+                const maxSize = 8;
 
                 function createParticle(x, y) {
                     return {
                         x,
                         y,
                         r: baseSize,
-                        vx: (Math.random() - 0.5) * 0.05,
-                        vy: (Math.random() - 0.5) * 0.05,
-                        life: 0,
-                        canSplit: true
+                        vx: (Math.random() - 0.5) * 0.5, // быстрее
+                        vy: (Math.random() - 0.5) * 0.5,
+                        life: 0
                     };
                 }
 
-                // Создаём 2–4 кластера и стартовые споры вокруг них
+                // создаём несколько кластеров
                 const clusters = [];
                 const clusterCount = 2 + Math.floor(Math.random() * 3);
-
                 for (let i = 0; i < clusterCount; i++) {
                     clusters.push({
                         x: Math.random() * canvas.width,
@@ -592,6 +594,7 @@ class PortfolioGallery {
                     });
                 }
 
+                // начальные споры
                 for (let i = 0; i < 5; i++) {
                     const c = clusters[Math.floor(Math.random() * clusters.length)];
                     particles.push(createParticle(
@@ -601,67 +604,69 @@ class PortfolioGallery {
                 }
 
                 /* ========= DRAW LOOP ========= */
-
                 let animationFrame;
-
                 function drawOrganic() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    particles.forEach(p => {
+                    // определяем цвет частиц по теме
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const color = isDark ? '#C0E2FF' : '#1A2732';
 
-                        // медленное колебательное движение
-                        p.x += p.vx + Math.sin(p.life * 0.01) * 0.3;
-                        p.y += p.vy + Math.cos(p.life * 0.01) * 0.3;
-
-                        // лёгкое замедление скорости
-                        p.vx *= 0.995;
-                        p.vy *= 0.995;
-
-                        // рост частицы
+                    particles.forEach((p, idx) => {
+                        // рост
                         if (p.r < maxSize) {
-                            p.r += 0.01 * (1 + Math.sin(p.life * 0.05));
+                            p.r += 0.15 + Math.random() * 0.1; // быстрее рост
                         }
 
-                        p.life++;
+                        // движение
+                        p.x += p.vx;
+                        p.y += p.vy;
 
-                        // деление клетки
-                        if (p.life > 180 && p.canSplit && particles.length < maxParticles) {
-                            p.canSplit = false;
-                            const angle = Math.random() * Math.PI * 2;
-                            const distance = p.r * 2;
-                            const cluster = clusters[Math.floor(Math.random() * clusters.length)];
-                            particles.push(createParticle(
-                                cluster.x + Math.cos(angle) * distance,
-                                cluster.y + Math.sin(angle) * distance
-                            ));
-                        }
-
-                        // притяжение к центрам кластеров
-                        clusters.forEach(cluster => {
-                            const dx = cluster.x - p.x;
-                            const dy = cluster.y - p.y;
-                            p.vx += dx * 0.0001;
-                            p.vy += dy * 0.0001;
+                        // отталкивание от других точек
+                        particles.forEach((other, jdx) => {
+                            if (idx === jdx) return;
+                            const dx = other.x - p.x;
+                            const dy = other.y - p.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < p.r + other.r && dist > 0) {
+                                const force = (p.r + other.r - dist) * 0.02;
+                                p.vx -= (dx / dist) * force;
+                                p.vy -= (dy / dist) * force;
+                            }
                         });
 
+                        // отталкивание от границ контейнера
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                        // небольшая случайная дрожь
+                        p.vx += (Math.random() - 0.5) * 0.05;
+                        p.vy += (Math.random() - 0.5) * 0.05;
+
+                        // рисуем
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                        ctx.fillStyle = "black";
+                        ctx.fillStyle = color;
                         ctx.fill();
                     });
 
+                    // добавляем новые частицы, пока не достигнем maxParticles
+                    if (particles.length < maxParticles && Math.random() < 0.15) {
+                        const c = clusters[Math.floor(Math.random() * clusters.length)];
+                        particles.push(createParticle(
+                            c.x + (Math.random() - 0.5) * 30,
+                            c.y + (Math.random() - 0.5) * 30
+                        ));
+                    }
+
                     animationFrame = requestAnimationFrame(drawOrganic);
                 }
-
                 drawOrganic();
 
                 /* ========= LOAD MEDIA ========= */
-
                 const stagger = Math.random() * 300;
-
                 setTimeout(() => {
                     media.src = media.dataset.src;
-
                     if (media.tagName === 'VIDEO') {
                         media.load();
                         media.play().catch(() => { });
@@ -669,7 +674,6 @@ class PortfolioGallery {
                 }, stagger);
 
                 media.src = media.dataset.src;
-
                 if (media.tagName === 'VIDEO') {
                     media.load();
                     media.play().catch(() => { });
@@ -681,15 +685,12 @@ class PortfolioGallery {
 
                     setTimeout(() => {
                         cancelAnimationFrame(animationFrame);
-
                         container.classList.add('loaded');
                         canvas.classList.add('fade-out');
-
                         setTimeout(() => {
                             canvas.remove();
                             window.removeEventListener('resize', resize);
                         }, 500);
-
                     }, delay);
                 };
 
