@@ -7,40 +7,10 @@
     <title>Pletnyov</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" type="image/png" href="/icon.png">
-
-    <style>
-        /* Мобильная версия для главной */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 0 2rem;
-            }
-
-            .header-left {
-                width: auto;
-                justify-content: flex-start;
-            }
-
-            .header-right {
-                width: auto;
-                justify-content: flex-end;
-                gap: 0.5rem;
-            }
-
-            .header-right .search-box,
-            .header-right .theme-toggle {
-                display: none;
-            }
-
-            .header-right .filters-link {
-                display: inline-block;
-            }
-        }
-    </style>
 </head>
 
-<body>
+<body class="home-page">
+
     <header>
         <div class="header-content">
             <div class="header-left">
@@ -59,11 +29,8 @@
         </div>
     </header>
 
-    <body class="home-page">
-
     <main>
-        <div class="gallery" id="gallery">
-        </div>
+        <div class="gallery" id="gallery"></div>
     </main>
 
     <footer>
