@@ -613,7 +613,7 @@ class PortfolioGallery {
                     particles.forEach((p, idx) => {
 
                         // Ускоренный рост начальных кластеров
-                        if (p.r < 12 && !p.dividing) p.r += 0.25;  // быстрее чем раньше
+                        if (p.r < 12 && !p.dividing) p.r += 0.5;  // быстрее чем раньше
 
                         // Деление клеток (плавное)
                         if (p.r > 10 && !p.dividing) {
