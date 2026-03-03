@@ -543,6 +543,8 @@ class PortfolioGallery {
                 const media = container.querySelector('img, video');
                 if (!media || !media.dataset.src) return;
 
+                const startTime = performance.now();
+
                 // ставим src
                 media.src = media.dataset.src;
 
@@ -552,9 +554,17 @@ class PortfolioGallery {
                 }
 
                 const loaded = () => {
-                    container.classList.add('loaded');
+                    const elapsed = performance.now() - startTime;
+                    const minDuration = 400;
+
+                    const delay = Math.max(0, minDuration - elapsed);
+
+                    setTimeout(() => {
+                        container.classList.add('loaded');
+                    }, delay);
                 };
 
+                // ВАЖНО — привязываем событие
                 if (media.tagName === 'IMG') {
                     media.onload = loaded;
                 } else {
