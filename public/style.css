@@ -824,3 +824,18 @@ body.dark-theme .theme-toggle .dark-icon {
     opacity: 1;
     transform: scale(1);
 }
+
+.media-item {
+    position: relative;
+    overflow: hidden;
+    background: var(--media-bg); /* Цвет фона во время загрузки */
+    will-change: filter, transform; /* Подсказка браузеру для оптимизации */
+}
+
+.media-item img,
+.media-item video {
+    display: block;
+    width: 100%;
+    height: auto;
+    backface-visibility: hidden; /* Исправляет артефакты в Safari */
+}

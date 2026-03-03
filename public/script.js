@@ -540,6 +540,7 @@ class PortfolioGallery {
 
                 const container = entry.target;
                 const media = container.querySelector('img, video');
+
                 if (!media) return;
                 if (container.dataset.loaded === "true") {
                     obs.unobserve(container);
@@ -548,117 +549,32 @@ class PortfolioGallery {
 
                 container.dataset.loaded = "true";
 
-                // Определяем цвет в зависимости от текущей темы
-                const isDark = document.body.classList.contains('dark-theme');
-                const color = isDark ? '#C0E2FF' : '#1A2732';
+                // 1. Устанавливаем начальные пиксельные стили для контейнера
+                container.style.willChange = 'filter, transform';
+                container.style.filter = 'blur(20px) contrast(200%) brightness(1.5)';
+                container.style.transform = 'scale(1.02)';
 
-                // Создаём canvas для анимации
-                const canvas = document.createElement('canvas');
-                Object.assign(canvas.style, {
-                    position: 'absolute',
-                    inset: '0',
-                    pointerEvents: 'none',
-                    zIndex: '1',
-                    width: '100%',
-                    height: '100%',
-                    display: 'block'
-                });
-                container.appendChild(canvas);
-
-                // Настраиваем контекст и ресайз
-                const ctx = canvas.getContext('2d');
-                const resizeCanvas = () => {
-                    const rect = container.getBoundingClientRect();
-                    if (rect.width === 0 || rect.height === 0) return;
-                    const dpr = window.devicePixelRatio || 1;
-                    canvas.width = rect.width * dpr;
-                    canvas.height = rect.height * dpr;
-                    canvas.style.width = rect.width + 'px';
-                    canvas.style.height = rect.height + 'px';
-                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                };
-                resizeCanvas();
-                const ro = new ResizeObserver(resizeCanvas);
-                ro.observe(container);
-
-                // Ключевые кадры анимации (нормализованные координаты 0..1)
-                const keyframes = [
-                    { cells: [{ x: 0.5, y: 0.5, r: 30 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }] },
-                    { cells: [{ x: 0.35, y: 0.5, r: 25 }, { x: 0.65, y: 0.5, r: 25 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }] },
-                    { cells: [{ x: 0.3, y: 0.3, r: 20 }, { x: 0.7, y: 0.3, r: 20 }, { x: 0.3, y: 0.7, r: 20 }, { x: 0.7, y: 0.7, r: 20 }] },
-                    { cells: [{ x: 0.2, y: 0.2, r: 15 }, { x: 0.8, y: 0.2, r: 15 }, { x: 0.2, y: 0.8, r: 15 }, { x: 0.8, y: 0.8, r: 15 }] }
-                ];
-
-                const cycleDuration = 4000; // 4 секунды на полный цикл
-                const startTime = performance.now();
-                let animFrame;
-
-                // Интерполяция между двумя кадрами
-                const interpolateCells = (frameA, frameB, t) => {
-                    return frameA.cells.map((cell, i) => ({
-                        x: cell.x + (frameB.cells[i].x - cell.x) * t,
-                        y: cell.y + (frameB.cells[i].y - cell.y) * t,
-                        r: cell.r + (frameB.cells[i].r - cell.r) * t
-                    }));
-                };
-
-                const animate = () => {
-                    const now = performance.now();
-                    const elapsed = now - startTime;
-                    let t = (elapsed % cycleDuration) / cycleDuration; // 0..1 циклически
-
-                    // Easing: easeInOutCubic для плавных переходов
-                    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-                    const totalFrames = keyframes.length;
-                    const pos = eased * (totalFrames - 1);
-                    const index = Math.floor(pos);
-                    const frac = pos - index;
-
-                    const cells = index >= totalFrames - 1
-                        ? keyframes[totalFrames - 1].cells
-                        : interpolateCells(keyframes[index], keyframes[index + 1], frac);
-
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    cells.forEach(cell => {
-                        if (cell.r <= 0.1) return;
-                        const x = cell.x * canvas.width;
-                        const y = cell.y * canvas.height;
-                        const r = cell.r;
-                        // Лёгкая асимметрия для живости
-                        const rx = r * (0.9 + 0.2 * Math.sin(now / 300 + cell.x));
-                        const ry = r * (0.9 + 0.2 * Math.cos(now / 200 + cell.y));
-                        ctx.beginPath();
-                        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-                        ctx.fillStyle = color;
-                        ctx.fill();
-                    });
-
-                    animFrame = requestAnimationFrame(animate);
-                };
-
-                animate();
-
-                // Загружаем медиа
+                // 2. Загружаем медиа
                 if (media.dataset.src) {
                     media.src = media.dataset.src;
                 }
 
                 const finish = () => {
-                    cancelAnimationFrame(animFrame);
-                    canvas.style.transition = 'opacity 0.4s ease';
-                    canvas.style.opacity = '0';
-                    setTimeout(() => {
-                        if (canvas.parentNode) {
-                            canvas.remove();
-                            ro.disconnect();
-                        }
-                    }, 400);
-                    container.classList.add('loaded');
+                    // 3. Плавно убираем эффекты
+                    container.style.transition = 'filter 1.2s cubic-bezier(0.25, 0.1, 0.15, 1), transform 1.2s cubic-bezier(0.25, 0.1, 0.15, 1)';
+                    container.style.filter = 'blur(0) contrast(1) brightness(1)';
+                    container.style.transform = 'scale(1)';
+
+                    // 4. Очищаем после анимации
+                    const cleanup = () => {
+                        container.style.transition = '';
+                        container.style.willChange = '';
+                        container.classList.add('loaded');
+                    };
+                    container.addEventListener('transitionend', cleanup, { once: true });
                 };
 
-                // Ожидаем загрузки медиа
+                // Ждём загрузки медиа
                 if (media.tagName === 'IMG') {
                     if (media.complete) finish();
                     else media.onload = finish;
