@@ -562,37 +562,98 @@ class PortfolioGallery {
                 resize();
                 window.addEventListener('resize', resize);
 
-                let progress = 0;
-                const growSpeed = 0.008; // в 4 раза медленнее
-                let animationFrame;
+                /* ========= PARTICLES ========= */
 
-                const maxDots = (canvas.width * canvas.height) / 500;
-                const dotSize = 6; // в 5 раз крупнее
+                const particles = [];
+                const maxParticles = 140;
+                const baseSize = 2;
+                const maxSize = 8;
 
-
-                function drawNoise() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-                    const currentDots = maxDots * eased;
-
-                    for (let i = 0; i < currentDots; i++) {
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * canvas.height;
-
-                        ctx.fillStyle = 'black';
-                        ctx.beginPath();
-                        ctx.arc(x, y, dotSize, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    if (progress < 1) {
-                        progress += growSpeed;
-                        animationFrame = requestAnimationFrame(drawNoise);
-                    }
+                function createParticle(x, y) {
+                    return {
+                        x,
+                        y,
+                        r: baseSize,
+                        vx: (Math.random() - 0.5) * 0.05,
+                        vy: (Math.random() - 0.5) * 0.05,
+                        life: 0,
+                        canSplit: true
+                    };
                 }
 
-                drawNoise();
+                // Создаём 2–4 кластера и стартовые споры вокруг них
+                const clusters = [];
+                const clusterCount = 2 + Math.floor(Math.random() * 3);
+
+                for (let i = 0; i < clusterCount; i++) {
+                    clusters.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height
+                    });
+                }
+
+                for (let i = 0; i < 5; i++) {
+                    const c = clusters[Math.floor(Math.random() * clusters.length)];
+                    particles.push(createParticle(
+                        c.x + (Math.random() - 0.5) * 20,
+                        c.y + (Math.random() - 0.5) * 20
+                    ));
+                }
+
+                /* ========= DRAW LOOP ========= */
+
+                let animationFrame;
+
+                function drawOrganic() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    particles.forEach(p => {
+
+                        // медленное колебательное движение
+                        p.x += p.vx + Math.sin(p.life * 0.01) * 0.3;
+                        p.y += p.vy + Math.cos(p.life * 0.01) * 0.3;
+
+                        // лёгкое замедление скорости
+                        p.vx *= 0.995;
+                        p.vy *= 0.995;
+
+                        // рост частицы
+                        if (p.r < maxSize) {
+                            p.r += 0.01 * (1 + Math.sin(p.life * 0.05));
+                        }
+
+                        p.life++;
+
+                        // деление клетки
+                        if (p.life > 180 && p.canSplit && particles.length < maxParticles) {
+                            p.canSplit = false;
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = p.r * 2;
+                            const cluster = clusters[Math.floor(Math.random() * clusters.length)];
+                            particles.push(createParticle(
+                                cluster.x + Math.cos(angle) * distance,
+                                cluster.y + Math.sin(angle) * distance
+                            ));
+                        }
+
+                        // притяжение к центрам кластеров
+                        clusters.forEach(cluster => {
+                            const dx = cluster.x - p.x;
+                            const dy = cluster.y - p.y;
+                            p.vx += dx * 0.0001;
+                            p.vy += dy * 0.0001;
+                        });
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = "black";
+                        ctx.fill();
+                    });
+
+                    animationFrame = requestAnimationFrame(drawOrganic);
+                }
+
+                drawOrganic();
 
                 /* ========= LOAD MEDIA ========= */
 
