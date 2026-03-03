@@ -536,15 +536,11 @@ class PortfolioGallery {
     setupLazyObserver() {
         this.observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
-
                 if (!entry.isIntersecting) return;
 
                 const container = entry.target;
                 const media = container.querySelector('img, video');
-
                 if (!media) return;
-
-                // если уже загружено — не трогаем
                 if (container.dataset.loaded === "true") {
                     obs.unobserve(container);
                     return;
@@ -552,145 +548,130 @@ class PortfolioGallery {
 
                 container.dataset.loaded = "true";
 
+                // Определяем цвет в зависимости от текущей темы
                 const isDark = document.body.classList.contains('dark-theme');
-                container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
-                container.style.position = 'relative';
+                const color = isDark ? '#C0E2FF' : '#1A2732';
 
+                // Создаём canvas для анимации
                 const canvas = document.createElement('canvas');
                 Object.assign(canvas.style, {
                     position: 'absolute',
-                    inset: 0,
+                    inset: '0',
                     pointerEvents: 'none',
-                    zIndex: 1
+                    zIndex: '1',
+                    width: '100%',
+                    height: '100%',
+                    display: 'block'
                 });
-
                 container.appendChild(canvas);
-                const ctx = canvas.getContext('2d');
 
-                function resize() {
+                // Настраиваем контекст и ресайз
+                const ctx = canvas.getContext('2d');
+                const resizeCanvas = () => {
                     const rect = container.getBoundingClientRect();
+                    if (rect.width === 0 || rect.height === 0) return;
                     const dpr = window.devicePixelRatio || 1;
                     canvas.width = rect.width * dpr;
                     canvas.height = rect.height * dpr;
                     canvas.style.width = rect.width + 'px';
                     canvas.style.height = rect.height + 'px';
                     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                }
-
-                resize();
-                const ro = new ResizeObserver(resize);
+                };
+                resizeCanvas();
+                const ro = new ResizeObserver(resizeCanvas);
                 ro.observe(container);
 
-                const color = isDark ? '#C0E2FF' : '#1A2732';
-                const particles = [];
+                // Ключевые кадры анимации (нормализованные координаты 0..1)
+                const keyframes = [
+                    { cells: [{ x: 0.5, y: 0.5, r: 30 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }] },
+                    { cells: [{ x: 0.35, y: 0.5, r: 25 }, { x: 0.65, y: 0.5, r: 25 }, { x: 0.5, y: 0.5, r: 0 }, { x: 0.5, y: 0.5, r: 0 }] },
+                    { cells: [{ x: 0.3, y: 0.3, r: 20 }, { x: 0.7, y: 0.3, r: 20 }, { x: 0.3, y: 0.7, r: 20 }, { x: 0.7, y: 0.7, r: 20 }] },
+                    { cells: [{ x: 0.2, y: 0.2, r: 15 }, { x: 0.8, y: 0.2, r: 15 }, { x: 0.2, y: 0.8, r: 15 }, { x: 0.8, y: 0.8, r: 15 }] }
+                ];
 
-                function create(x, y, r = 4) {
-                    return {
-                        x, y,
-                        vx: (Math.random() - 0.5) * 0.2,
-                        vy: (Math.random() - 0.5) * 0.2,
-                        r,
-                        life: 0,
-                        phase: 0
-                    };
-                }
+                const cycleDuration = 4000; // 4 секунды на полный цикл
+                const startTime = performance.now();
+                let animFrame;
 
-                // стартуем из центра
-                particles.push(create(canvas.width / 2, canvas.height / 2, 5));
+                // Интерполяция между двумя кадрами
+                const interpolateCells = (frameA, frameB, t) => {
+                    return frameA.cells.map((cell, i) => ({
+                        x: cell.x + (frameB.cells[i].x - cell.x) * t,
+                        y: cell.y + (frameB.cells[i].y - cell.y) * t,
+                        r: cell.r + (frameB.cells[i].r - cell.r) * t
+                    }));
+                };
 
-                function ease(t) {
-                    return t * t * (3 - 2 * t);
-                }
+                const animate = () => {
+                    const now = performance.now();
+                    const elapsed = now - startTime;
+                    let t = (elapsed % cycleDuration) / cycleDuration; // 0..1 циклически
 
-                let frame;
+                    // Easing: easeInOutCubic для плавных переходов
+                    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-                function animate() {
+                    const totalFrames = keyframes.length;
+                    const pos = eased * (totalFrames - 1);
+                    const index = Math.floor(pos);
+                    const frac = pos - index;
+
+                    const cells = index >= totalFrames - 1
+                        ? keyframes[totalFrames - 1].cells
+                        : interpolateCells(keyframes[index], keyframes[index + 1], frac);
+
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    particles.forEach((p, i) => {
-
-                        p.life += 0.02;
-                        p.x += p.vx;
-                        p.y += p.vy;
-
-                        // мягкий отскок
-                        const margin = p.r + 2;
-                        if (p.x < margin || p.x > canvas.width - margin) p.vx *= -0.8;
-                        if (p.y < margin || p.y > canvas.height - margin) p.vy *= -0.8;
-
-                        if (p.phase === 0) {
-                            p.r += 0.08;
-
-                            if (p.r > 10 && particles.length < 20) {
-                                p.phase = 1;
-                                p.life = 0;
-                            }
-
-                            draw(p.x, p.y, p.r);
-                        }
-                        else {
-                            const t = Math.min(p.life, 1);
-                            const e = ease(t);
-                            const offset = e * p.r * 0.7;
-
-                            draw(p.x - offset, p.y, p.r * 0.7);
-                            draw(p.x + offset, p.y, p.r * 0.7);
-
-                            if (t >= 1) {
-                                particles.splice(i, 1,
-                                    create(p.x - p.r, p.y, p.r * 0.6),
-                                    create(p.x + p.r, p.y, p.r * 0.6)
-                                );
-                            }
-                        }
+                    cells.forEach(cell => {
+                        if (cell.r <= 0.1) return;
+                        const x = cell.x * canvas.width;
+                        const y = cell.y * canvas.height;
+                        const r = cell.r;
+                        // Лёгкая асимметрия для живости
+                        const rx = r * (0.9 + 0.2 * Math.sin(now / 300 + cell.x));
+                        const ry = r * (0.9 + 0.2 * Math.cos(now / 200 + cell.y));
+                        ctx.beginPath();
+                        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+                        ctx.fillStyle = color;
+                        ctx.fill();
                     });
 
-                    frame = requestAnimationFrame(animate);
-                }
-
-                function draw(x, y, r) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, r, 0, Math.PI * 2);
-                    ctx.fillStyle = color;
-                    ctx.fill();
-                }
+                    animFrame = requestAnimationFrame(animate);
+                };
 
                 animate();
 
-                // ВАЖНО — назначаем src СРАЗУ
+                // Загружаем медиа
                 if (media.dataset.src) {
                     media.src = media.dataset.src;
                 }
 
-                if (media.tagName === 'VIDEO') {
-                    media.load();
-                    media.play().catch(() => { });
-                }
-
                 const finish = () => {
-                    container.classList.add('loaded');
-
-                    cancelAnimationFrame(frame);
+                    cancelAnimationFrame(animFrame);
+                    canvas.style.transition = 'opacity 0.4s ease';
                     canvas.style.opacity = '0';
-
                     setTimeout(() => {
-                        canvas.remove();
-                        ro.disconnect();
-                    }, 300);
+                        if (canvas.parentNode) {
+                            canvas.remove();
+                            ro.disconnect();
+                        }
+                    }, 400);
+                    container.classList.add('loaded');
                 };
 
+                // Ожидаем загрузки медиа
                 if (media.tagName === 'IMG') {
                     if (media.complete) finish();
                     else media.onload = finish;
                 } else {
-                    media.onloadeddata = finish;
+                    if (media.readyState >= 2) finish();
+                    else media.onloadeddata = finish;
                 }
 
                 obs.unobserve(container);
             });
         }, {
             root: null,
-            rootMargin: '0px 0px 200px 0px', // мягкий preload
+            rootMargin: '0px 0px 200px 0px',
             threshold: 0.1
         });
     }
