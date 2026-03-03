@@ -789,40 +789,22 @@ body.dark-theme .theme-toggle .dark-icon {
     }
 }
 
-/* =================================
-   RANDOM NOISE PLACEHOLDER (PRO)
-================================= */
-
 .media-item {
     position: relative;
     overflow: hidden;
     background: #fff;
 }
 
-.noise-layer {
+.noise-canvas {
     position: absolute;
     inset: 0;
     z-index: 1;
     pointer-events: none;
-
-    background-size: 200px 200px;
-
-    animation: noiseGrow 0.7s ease forwards;
 }
 
-@keyframes noiseGrow {
-    0% {
-        filter: contrast(200%) brightness(200%);
-    }
-
-    100% {
-        filter: contrast(900%) brightness(40%);
-    }
-}
-
-.noise-layer.fade-out {
+.noise-canvas.fade-out {
     opacity: 0;
-    transition: opacity 0.4s ease 0.1s;
+    transition: opacity 0.45s ease 0.1s;
 }
 
 .media-item img,
@@ -834,7 +816,7 @@ body.dark-theme .theme-toggle .dark-icon {
 
     opacity: 0;
     transform: scale(1.02);
-    transition: opacity 0.6s ease, transform 0.8s ease;
+    transition: opacity 0.6s ease;
 }
 
 .media-item.loaded img,

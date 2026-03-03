@@ -544,35 +544,54 @@ class PortfolioGallery {
                 if (!media || !media.dataset.src) return;
 
                 const startTime = performance.now();
+                const minDuration = 900;
 
-                /* ===== СОЗДАЁМ NOISE LAYER ===== */
+                /* ========= CANVAS ========= */
 
-                const seed = Math.floor(Math.random() * 1000);
+                const canvas = document.createElement('canvas');
+                canvas.className = 'noise-canvas';
+                container.appendChild(canvas);
 
-                const noise = document.createElement('div');
-                noise.className = 'noise-layer';
+                const ctx = canvas.getContext('2d');
 
-                noise.style.backgroundImage = `
-                url("data:image/svg+xml;utf8,
-                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
-                <filter id='n'>
-                <feTurbulence type='fractalNoise'
-                              baseFrequency='0.8'
-                              numOctaves='1'
-                              seed='${seed}'/>
-                <feColorMatrix type='matrix'
-                    values='0 0 0 0 0
-                            0 0 0 0 0
-                            0 0 0 0 0
-                            0 0 0 25 -15'/>
-                </filter>
-                <rect width='100%' height='100%' filter='url(%23n)'/>
-                </svg>")
-            `;
+                const resize = () => {
+                    canvas.width = container.offsetWidth;
+                    canvas.height = container.offsetHeight;
+                };
 
-                container.appendChild(noise);
+                resize();
+                window.addEventListener('resize', resize);
 
-                /* ===== LOAD MEDIA ===== */
+                let progress = 0;
+                let animationFrame;
+
+                const maxDots = (canvas.width * canvas.height) / 500;
+                const dotSize = 3; // в 5 раз крупнее
+
+                function drawNoise() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const currentDots = maxDots * progress;
+
+                    for (let i = 0; i < currentDots; i++) {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+
+                        ctx.fillStyle = 'black';
+                        ctx.beginPath();
+                        ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    if (progress < 1) {
+                        progress += 0.03;
+                        animationFrame = requestAnimationFrame(drawNoise);
+                    }
+                }
+
+                drawNoise();
+
+                /* ========= LOAD MEDIA ========= */
 
                 media.src = media.dataset.src;
 
@@ -583,14 +602,19 @@ class PortfolioGallery {
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
-                    const minDuration = 700;
                     const delay = Math.max(0, minDuration - elapsed);
 
                     setTimeout(() => {
-                        container.classList.add('loaded');
-                        noise.classList.add('fade-out');
+                        cancelAnimationFrame(animationFrame);
 
-                        setTimeout(() => noise.remove(), 500);
+                        container.classList.add('loaded');
+                        canvas.classList.add('fade-out');
+
+                        setTimeout(() => {
+                            canvas.remove();
+                            window.removeEventListener('resize', resize);
+                        }, 500);
+
                     }, delay);
                 };
 
