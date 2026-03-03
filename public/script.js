@@ -611,6 +611,32 @@ class PortfolioGallery {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                     particles.forEach((p, idx) => {
+
+                        // Ускоренный рост начальных кластеров
+                        if (p.r < 12 && !p.dividing) p.r += 0.25;  // быстрее чем раньше
+
+                        // Деление клеток (плавное)
+                        if (p.r > 10 && !p.dividing) {
+                            p.dividing = true;
+                            p.splitTime = performance.now();
+                        }
+
+                        if (p.dividing) {
+                            const elapsed = performance.now() - p.splitTime;
+                            p.r += Math.sin(elapsed * 0.006) * 0.3; // плавная пульсация
+                            if (elapsed > 500 && !mediaLoaded) {   // как только первая фаза деления прошла
+                                mediaLoaded = true;
+                                loadMedia();                        // запускаем медиа
+                            }
+                            if (elapsed > 900) {
+                                const childA = createCell(p.x - p.r * 0.5, p.y);
+                                const childB = createCell(p.x + p.r * 0.5, p.y);
+                                childA.vx = -0.2; childB.vx = 0.2;
+                                particles.splice(idx, 1, childA, childB);
+                                return;
+                            }
+                        }
+
                         // Плавный рост
                         if (p.r < 15 && !p.dividing) {
                             p.r += 0.08;
@@ -672,6 +698,8 @@ class PortfolioGallery {
                     animationFrame = requestAnimationFrame(draw);
                 }
                 draw();
+
+
 
                 // === Загрузка медиа ===
                 const stagger = Math.random() * 300;
