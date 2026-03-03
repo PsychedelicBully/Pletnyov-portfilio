@@ -583,22 +583,20 @@ class PortfolioGallery {
                 // === Частицы ===
                 const particles = [];
                 const color = isDark ? '#C0E2FF' : '#1A2732';
-                const baseSize = 0.8;      // меньший размер
-                const maxSize = 10;        // максимальный радиус
-                const extraPoints = 2;     // дополнительные точки роста
 
                 function createCell(x, y) {
                     return {
                         x, y,
-                        r: baseSize,
+                        r: 0.5,          // стартовый размер очень маленький
+                        phase: 0,        // фаза роста/деления
                         vx: 0, vy: 0,
                         dividing: false,
                         splitTime: 0
                     };
                 }
 
-                // стартовые точки + дополнительные
-                const initialCount = 4 + extraPoints;
+                // начальные точки
+                const initialCount = 4;
                 for (let i = 0; i < initialCount; i++) {
                     particles.push(
                         createCell(
@@ -609,68 +607,62 @@ class PortfolioGallery {
                 }
 
                 let animationFrame;
-                let mediaLoaded = false;
-
                 function draw() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                     particles.forEach((p, idx) => {
-                        // ускоренный рост
-                        if (p.r < maxSize && !p.dividing) p.r += 0.35;
+                        // Плавный рост
+                        if (p.r < 15 && !p.dividing) {
+                            p.r += 0.08;
+                        }
 
-                        // деление клеток
-                        if (p.r > 7 && !p.dividing) {
+                        // Когда достаточный размер — начинаем деление
+                        if (p.r > 10 && !p.dividing) {
                             p.dividing = true;
                             p.splitTime = performance.now();
                         }
 
                         if (p.dividing) {
+                            // Эффект "пульсации" перед делением
                             const elapsed = performance.now() - p.splitTime;
-                            p.r += Math.sin(elapsed * 0.006) * 0.25;
+                            p.r += Math.sin(elapsed * 0.003) * 0.2;
 
-                            if (elapsed > 500 && !mediaLoaded) {
-                                mediaLoaded = true;
-                                loadMedia();
-                            }
-
+                            // После некоторого времени создаём 2 дочерние
                             if (elapsed > 800) {
                                 const childA = createCell(p.x - p.r * 0.5, p.y);
                                 const childB = createCell(p.x + p.r * 0.5, p.y);
+
                                 childA.vx = -0.2;
                                 childB.vx = 0.2;
+
                                 particles.splice(idx, 1, childA, childB);
                                 return;
                             }
                         }
 
-                        // мягкое движение
+                        // Плавное движение (очень медленное)
                         p.x += p.vx * 0.02;
                         p.y += p.vy * 0.02;
 
-                        // легкое притяжение к центру
+                        // Мягкое притяжение к центру всех точек
                         let avgX = 0, avgY = 0;
-                        particles.forEach(o => { avgX += o.x; avgY += o.y; });
+                        particles.forEach(o => {
+                            avgX += o.x;
+                            avgY += o.y;
+                        });
                         avgX /= particles.length;
                         avgY /= particles.length;
+
                         p.vx += (avgX - p.x) * 0.0002;
                         p.vy += (avgY - p.y) * 0.0002;
 
-                        // безопасные границы с плавным отталкиванием
-                        const margin = p.r;
-                        if (p.x < margin) p.vx += (margin - p.x) * 0.05;
-                        if (p.x > canvas.width - margin) p.vx += (canvas.width - margin - p.x) * 0.05;
-                        if (p.y < margin) p.vy += (margin - p.y) * 0.05;
-                        if (p.y > canvas.height - margin) p.vy += (canvas.height - margin - p.y) * 0.05;
+                        // Отталкивание от границ
+                        if (p.x < p.r) p.vx += 0.1;
+                        if (p.x > canvas.width - p.r) p.vx -= 0.1;
+                        if (p.y < p.r) p.vy += 0.1;
+                        if (p.y > canvas.height - p.r) p.vy -= 0.1;
 
-                        // небольшая случайная дрожь для органичности
-                        p.vx += (Math.random() - 0.5) * 0.02;
-                        p.vy += (Math.random() - 0.5) * 0.02;
-
-                        // damping для плавности
-                        p.vx *= 0.98;
-                        p.vy *= 0.98;
-
-                        // рисуем частицу
+                        // Рисуем точку
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
@@ -679,19 +671,25 @@ class PortfolioGallery {
 
                     animationFrame = requestAnimationFrame(draw);
                 }
-
-                function loadMedia() {
-                    const stagger = Math.random() * 300;
-                    setTimeout(() => {
-                        media.src = media.dataset.src;
-                        if (media.tagName === 'VIDEO') {
-                            media.load();
-                            media.play().catch(() => { });
-                        }
-                    }, stagger);
-                }
-
                 draw();
+
+                
+
+                // === Загрузка медиа ===
+                const stagger = Math.random() * 300;
+                setTimeout(() => {
+                    media.src = media.dataset.src;
+                    if (media.tagName === 'VIDEO') {
+                        media.load();
+                        media.play().catch(() => { });
+                    }
+                }, stagger);
+
+                media.src = media.dataset.src;
+                if (media.tagName === 'VIDEO') {
+                    media.load();
+                    media.play().catch(() => { });
+                }
 
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
