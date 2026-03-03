@@ -545,9 +545,14 @@ class PortfolioGallery {
                 const startTime = performance.now();
                 const minDuration = 1200;
 
+                /* ========= SET CONTAINER BACKGROUND ========= */
+                const isDark = document.body.classList.contains('dark-theme');
+                container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
+                container.style.position = 'relative';
+
                 /* ========= CANVAS ========= */
                 const canvas = document.createElement('canvas');
-                canvas.className = 'noise-canvas';
+                canvas.className = 'spore-canvas';
                 canvas.style.position = 'absolute';
                 canvas.style.top = 0;
                 canvas.style.left = 0;
@@ -555,64 +560,52 @@ class PortfolioGallery {
                 canvas.style.height = '100%';
                 canvas.style.pointerEvents = 'none';
                 canvas.style.zIndex = 1;
-                container.style.position = 'relative';
                 container.appendChild(canvas);
 
                 const ctx = canvas.getContext('2d');
 
-                // Функция корректного масштабирования canvas
                 const resize = () => {
                     const rect = container.getBoundingClientRect();
                     const dpr = window.devicePixelRatio || 1;
-
                     canvas.width = rect.width * dpr;
                     canvas.height = rect.height * dpr;
-
                     canvas.style.width = rect.width + 'px';
                     canvas.style.height = rect.height + 'px';
-
                     ctx.setTransform(1, 0, 0, 1, 0, 0);
                     ctx.scale(dpr, dpr);
                 };
                 resize();
-
                 const ro = new ResizeObserver(resize);
                 ro.observe(container);
 
                 /* ========= PARTICLES ========= */
                 const particles = [];
-                const maxParticles = 200;
+                const maxParticles = 400;
                 const baseSize = 1.5;
                 const maxSize = 8;
+                const branchChance = 0.02; // шанс создания ветки
 
-                function createParticle(x, y) {
+                function createParticle(x, y, r = baseSize) {
                     return {
-                        x,
-                        y,
-                        r: baseSize,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        life: 0
+                        x, y, r,
+                        vx: (Math.random() - 0.5) * 1.0,
+                        vy: (Math.random() - 0.5) * 1.0,
+                        life: 0,
+                        branches: []
                     };
                 }
 
-                // Кластеры
-                const clusters = [];
-                const clusterCount = 2 + Math.floor(Math.random() * 3);
+                // Создаём несколько стартовых кластеров
+                const clusterCount = 3 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < clusterCount; i++) {
-                    clusters.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height
-                    });
-                }
-
-                // Стартовые споры
-                for (let i = 0; i < 5; i++) {
-                    const c = clusters[Math.floor(Math.random() * clusters.length)];
-                    particles.push(createParticle(
-                        c.x + (Math.random() - 0.5) * 20,
-                        c.y + (Math.random() - 0.5) * 20
-                    ));
+                    const cx = Math.random() * canvas.width;
+                    const cy = Math.random() * canvas.height;
+                    for (let j = 0; j < 8; j++) {
+                        particles.push(createParticle(
+                            cx + (Math.random() - 0.5) * 20,
+                            cy + (Math.random() - 0.5) * 20
+                        ));
+                    }
                 }
 
                 /* ========= DRAW LOOP ========= */
@@ -620,55 +613,54 @@ class PortfolioGallery {
                 function drawOrganic() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    const isDark = document.body.classList.contains('dark-theme');
                     const color = isDark ? '#C0E2FF' : '#1A2732';
 
-                    particles.forEach((p, idx) => {
-                        // Рост
-                        if (p.r < maxSize) {
-                            p.r += 0.15 + Math.random() * 0.1;
-                        }
+                    particles.forEach(p => {
+                        // рост
+                        if (p.r < maxSize) p.r += 0.2 + Math.random() * 0.1;
 
-                        // Движение
+                        // движение
                         p.x += p.vx;
                         p.y += p.vy;
 
-                        // Отталкивание от других точек
-                        particles.forEach((other, jdx) => {
-                            if (idx === jdx) return;
+                        // отталкивание друг от друга
+                        particles.forEach(other => {
+                            if (other === p) return;
                             const dx = other.x - p.x;
                             const dy = other.y - p.y;
                             const dist = Math.sqrt(dx * dx + dy * dy);
                             if (dist < p.r + other.r && dist > 0) {
-                                const force = (p.r + other.r - dist) * 0.02;
+                                const force = (p.r + other.r - dist) * 0.05;
                                 p.vx -= (dx / dist) * force;
                                 p.vy -= (dy / dist) * force;
                             }
                         });
 
-                        // Отталкивание от границ
-                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        // отталкивание от стен
+                        if (p.x < p.r) p.vx += 0.5;
+                        if (p.x > canvas.width - p.r) p.vx -= 0.5;
+                        if (p.y < p.r) p.vy += 0.5;
+                        if (p.y > canvas.height - p.r) p.vy -= 0.5;
 
-                        // Случайная дрожь
-                        p.vx += (Math.random() - 0.5) * 0.05;
-                        p.vy += (Math.random() - 0.5) * 0.05;
+                        // небольшая случайная дрожь
+                        p.vx += (Math.random() - 0.5) * 0.1;
+                        p.vy += (Math.random() - 0.5) * 0.1;
 
-                        // Рисуем
+                        // ветвление
+                        if (Math.random() < branchChance && particles.length < maxParticles) {
+                            const branch = createParticle(p.x, p.y, p.r * 0.7);
+                            branch.vx = p.vx + (Math.random() - 0.5);
+                            branch.vy = p.vy + (Math.random() - 0.5);
+                            p.branches.push(branch);
+                            particles.push(branch);
+                        }
+
+                        // рисуем текущую точку
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
                         ctx.fill();
                     });
-
-                    // Добавляем новые частицы до max
-                    if (particles.length < maxParticles && Math.random() < 0.15) {
-                        const c = clusters[Math.floor(Math.random() * clusters.length)];
-                        particles.push(createParticle(
-                            c.x + (Math.random() - 0.5) * 30,
-                            c.y + (Math.random() - 0.5) * 30
-                        ));
-                    }
 
                     animationFrame = requestAnimationFrame(drawOrganic);
                 }
