@@ -540,7 +540,6 @@ class PortfolioGallery {
 
                 const container = entry.target;
                 const media = container.querySelector('img, video');
-
                 if (!media) return;
 
                 if (media.dataset.src) {
@@ -551,16 +550,16 @@ class PortfolioGallery {
                     media.play().catch(() => { });
                 }
 
-                const finish = () => {
+                const reveal = () => {
                     container.classList.add('loaded');
                 };
 
                 if (media.tagName === 'IMG') {
-                    if (media.complete) finish();
-                    else media.onload = finish;
+                    if (media.complete) reveal();
+                    else media.onload = reveal;
                 } else {
-                    if (media.readyState >= 2) finish();
-                    else media.onloadeddata = finish;
+                    if (media.readyState >= 2) reveal();
+                    else media.onloadeddata = reveal;
                 }
 
                 obs.unobserve(container);
