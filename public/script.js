@@ -545,7 +545,7 @@ class PortfolioGallery {
                 const startTime = performance.now();
                 const minDuration = 1200;
 
-                /* ========= SET CONTAINER BACKGROUND ========= */
+                /* ========= CONTAINER BACKGROUND ========= */
                 const isDark = document.body.classList.contains('dark-theme');
                 container.style.backgroundColor = isDark ? '#3E404F' : '#ffffff';
                 container.style.position = 'relative';
@@ -580,27 +580,28 @@ class PortfolioGallery {
 
                 /* ========= PARTICLES ========= */
                 const particles = [];
-                const maxParticles = 400;
-                const baseSize = 1.5;
-                const maxSize = 8;
-                const branchChance = 0.02; // шанс создания ветки
+                const maxParticles = 500;
+                const baseSize = 1.2;
+                const maxSize = 6;
 
                 function createParticle(x, y, r = baseSize) {
                     return {
                         x, y, r,
-                        vx: (Math.random() - 0.5) * 1.0,
-                        vy: (Math.random() - 0.5) * 1.0,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: (Math.random() - 0.5) * 0.8,
                         life: 0,
-                        branches: []
+                        canDivide: true
                     };
                 }
 
-                // Создаём несколько стартовых кластеров
+                // стартовые кластеры
+                const clusters = [];
                 const clusterCount = 3 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < clusterCount; i++) {
                     const cx = Math.random() * canvas.width;
                     const cy = Math.random() * canvas.height;
-                    for (let j = 0; j < 8; j++) {
+                    clusters.push({ x: cx, y: cy });
+                    for (let j = 0; j < 6; j++) {
                         particles.push(createParticle(
                             cx + (Math.random() - 0.5) * 20,
                             cy + (Math.random() - 0.5) * 20
@@ -612,50 +613,49 @@ class PortfolioGallery {
                 let animationFrame;
                 function drawOrganic() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                     const color = isDark ? '#C0E2FF' : '#1A2732';
 
-                    particles.forEach(p => {
-                        // рост
-                        if (p.r < maxSize) p.r += 0.2 + Math.random() * 0.1;
+                    particles.forEach((p, idx) => {
+                        // рост при появлении
+                        if (p.r < maxSize) p.r += 0.25 + Math.random() * 0.15;
 
                         // движение
                         p.x += p.vx;
                         p.y += p.vy;
 
-                        // отталкивание друг от друга
-                        particles.forEach(other => {
-                            if (other === p) return;
+                        // легкое притяжение к соседним частицам
+                        particles.forEach((other, jdx) => {
+                            if (idx === jdx) return;
                             const dx = other.x - p.x;
                             const dy = other.y - p.y;
                             const dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < p.r + other.r && dist > 0) {
-                                const force = (p.r + other.r - dist) * 0.05;
-                                p.vx -= (dx / dist) * force;
-                                p.vy -= (dy / dist) * force;
+                            if (dist > 0 && dist < 50) {
+                                const force = (50 - dist) * 0.02;
+                                p.vx += dx / dist * force * 0.3; // притяжение
+                                p.vy += dy / dist * force * 0.3;
                             }
                         });
 
-                        // отталкивание от стен
+                        // отражение от стен
                         if (p.x < p.r) p.vx += 0.5;
                         if (p.x > canvas.width - p.r) p.vx -= 0.5;
                         if (p.y < p.r) p.vy += 0.5;
                         if (p.y > canvas.height - p.r) p.vy -= 0.5;
 
                         // небольшая случайная дрожь
-                        p.vx += (Math.random() - 0.5) * 0.1;
-                        p.vy += (Math.random() - 0.5) * 0.1;
+                        p.vx += (Math.random() - 0.5) * 0.05;
+                        p.vy += (Math.random() - 0.5) * 0.05;
 
-                        // ветвление
-                        if (Math.random() < branchChance && particles.length < maxParticles) {
-                            const branch = createParticle(p.x, p.y, p.r * 0.7);
-                            branch.vx = p.vx + (Math.random() - 0.5);
-                            branch.vy = p.vy + (Math.random() - 0.5);
-                            p.branches.push(branch);
-                            particles.push(branch);
+                        // деление частиц
+                        if (p.canDivide && p.r > 2.5 && particles.length < maxParticles && Math.random() < 0.08) {
+                            const child = createParticle(p.x, p.y, p.r * 0.7);
+                            child.vx = p.vx + (Math.random() - 0.5) * 0.5;
+                            child.vy = p.vy + (Math.random() - 0.5) * 0.5;
+                            p.canDivide = false;
+                            particles.push(child);
                         }
 
-                        // рисуем текущую точку
+                        // рисуем частицу
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = color;
@@ -685,7 +685,6 @@ class PortfolioGallery {
                 const loaded = () => {
                     const elapsed = performance.now() - startTime;
                     const delay = Math.max(0, minDuration - elapsed);
-
                     setTimeout(() => {
                         cancelAnimationFrame(animationFrame);
                         container.classList.add('loaded');
