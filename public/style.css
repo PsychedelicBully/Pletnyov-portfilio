@@ -190,7 +190,7 @@ main {
 }
 
 .gallery-item {
-    width: 100%;
+    width: 300px;
     margin: 0 0 20px 0;
     /* только нижний отступ для вертикальных промежутков */
     background: var(--bg-color);
