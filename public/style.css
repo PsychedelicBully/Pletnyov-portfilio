@@ -183,21 +183,18 @@ main {
     min-height: calc(100vh - 160px);
 }
 
-.grid-sizer {
-    width: 300px;
-}
-
 .gallery {
     position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1rem;
+    width: 100%;
+    padding: 1rem 2rem;
+    /* matches header padding */
+    box-sizing: border-box;
 }
 
 .gallery-item {
-    width: 300px;
+    width: calc(25% - 15px);
+    /* 4 columns with 20px gutters */
     margin-bottom: 20px;
-    /* только нижний отступ для вертикальных промежутков */
     background: var(--bg-color);
     transition: opacity 0.3s ease;
 }
@@ -205,20 +202,33 @@ main {
 /* Адаптивность */
 @media (max-width: 1200px) {
     .gallery-item {
-        width: 280px;
+        width: calc(33.333% - 14px);
+        /* 3 columns */
     }
 }
 
 @media (max-width: 900px) {
     .gallery-item {
-        width: 240px;
+        width: calc(50% - 10px);
+        /* 2 columns */
     }
 }
 
 @media (max-width: 600px) {
     .gallery-item {
-        width: 100%;
+        width: calc(50% - 8px);
+        /* still 2 columns on mobile */
         margin-bottom: 15px;
+    }
+
+    .gallery {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .gallery-item {
+        width: 100%;
     }
 }
 

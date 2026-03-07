@@ -611,9 +611,8 @@ class PortfolioGallery {
                 if (!this.masonry) {
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
-                        columnWidth: '.grid-sizer',
-                        gutter: 20,                // горизонтальные отступы между колонками
                         percentPosition: true,
+                        gutter: 20,
                         transitionDuration: '0.2s'
                     });
                 } else {
