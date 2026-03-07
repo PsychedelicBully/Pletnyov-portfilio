@@ -10,7 +10,6 @@ class PortfolioGallery {
         this.hasMore = true;
         this.isLoading = false;
         this.pinnedPost = null;     // объект закреплённого поста
-        this.masonry = null;        // экземпляр Masonry
 
 
         this.allPosts = [];
@@ -193,14 +192,6 @@ class PortfolioGallery {
 
         if (this.currentFilter === 'all' && !this.searchTerm) {
             this.filteredPosts.push(...newPosts);
-        }
-
-        // Ждём загрузки всех изображений внутри новых элементов
-        if (this.masonry && typeof imagesLoaded !== 'undefined') {
-            imagesLoaded(items, () => {
-                this.masonry.appended(items);
-                this.masonry.layout();
-            });
         }
     }
 
@@ -605,22 +596,6 @@ class PortfolioGallery {
 
         this.observeMedia();
 
-        // Инициализация или обновление Masonry
-        if (typeof Masonry !== 'undefined' && typeof imagesLoaded !== 'undefined') {
-            imagesLoaded(this.galleryEl, () => {
-                if (!this.masonry) {
-                    this.masonry = new Masonry(this.galleryEl, {
-                        itemSelector: '.gallery-item',
-                        columnWidth: '.gallery-sizer',
-                        percentPosition: true,
-                        gutter: 20,
-                        transitionDuration: '0.2s'
-                    });
-                } else {
-                    this.masonry.layout();        // перестраиваем существующую сетку
-                }
-            });
-        }
     }
 
 
@@ -732,9 +707,6 @@ class PortfolioGallery {
 
                 const reveal = () => {
                     container.classList.add('loaded');
-                    if (this.masonry) {
-                        this.masonry.layout(); // перестраиваем сетку после загрузки медиа
-                    }
                 };
 
                 if (media.tagName === 'IMG') {
