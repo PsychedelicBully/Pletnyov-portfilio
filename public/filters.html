@@ -122,7 +122,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
 
-            const res = await fetch('/api/tumblr');
+            const res = await fetch('/api/tumblr?limit=100&offset=0');
             const data = await res.json();
             const posts = data.response.posts || [];
 

@@ -79,7 +79,6 @@ class PortfolioGallery {
         window.addEventListener('resize', () => {
             if (this.masonry) this.masonry.layout();
         });
-        window.addEventListener('scroll', () => this.handleScroll()); // ВАЖНО
     }
 
     setupEventListeners() {
@@ -89,7 +88,7 @@ class PortfolioGallery {
         });
     }
 
-    // Загружает первую порцию и ищет pinned
+    // REPLACE loadPinnedAndInitial() entirely:
     async loadPinnedAndInitial() {
         this.galleryEl.innerHTML = '';
         this.offset = 0;
@@ -97,24 +96,30 @@ class PortfolioGallery {
         this.allPosts = [];
         this.filteredPosts = [];
 
-        const initialPosts = await this.fetchPage(this.offset, this.limit);
-        this.allPosts.push(...initialPosts);
-        this.offset += this.limit;
+        // Load ALL posts first
+        while (this.hasMore) {
+            const posts = await this.fetchPage(this.offset, this.limit);
+            if (posts.length === 0) {
+                this.hasMore = false;
+                break;
+            }
+            this.allPosts.push(...posts);
+            this.offset += this.limit;
+            if (posts.length < this.limit) {
+                this.hasMore = false;
+            }
+        }
 
         this.pinnedPost = this.findPinnedPost(this.allPosts);
+        if (this.pinnedPost) this.movePinnedToFront();
 
-        if (this.pinnedPost) {
-            this.movePinnedToFront();
-            this.filteredPosts = [...this.allPosts];
-            this.displayPosts();
-            this.loadRemainingPosts();
+        // Apply URL filter if present, otherwise show all
+        if (this.urlFilter) {
+            this.currentFilter = this.urlFilter;
+            this.filterPosts();
         } else {
-            await this.searchForPinnedRecursive();
-            if (this.pinnedPost) this.movePinnedToFront();
-            // !!! ВАЖНО: инициализируем filteredPosts после поиска
             this.filteredPosts = [...this.allPosts];
             this.displayPosts();
-            if (this.hasMore) this.loadRemainingPosts();
         }
     }
 
