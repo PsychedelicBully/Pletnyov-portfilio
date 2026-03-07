@@ -76,10 +76,11 @@ class PortfolioGallery {
     init() {
         this.setupEventListeners();
         this.setupThemeToggle();
-        this.loadPinnedAndInitial(); // заменяет loadPortfolio
+        this.loadPinnedAndInitial();
         window.addEventListener('resize', () => {
             if (this.masonry) this.masonry.layout();
         });
+        window.addEventListener('scroll', () => this.handleScroll()); // ВАЖНО
     }
 
     setupEventListeners() {
@@ -179,9 +180,12 @@ class PortfolioGallery {
     // Добавляет новые посты в конец галереи и обновляет Masonry
     appendPosts(newPosts) {
         const fragment = document.createDocumentFragment();
+        const items = []; // массив для хранения добавленных элементов
+
         newPosts.forEach(post => {
             const item = this.createGalleryItem(post);
             fragment.appendChild(item);
+            items.push(item); // запоминаем элемент
         });
 
         this.galleryEl.appendChild(fragment);
@@ -192,9 +196,11 @@ class PortfolioGallery {
             this.filteredPosts.push(...newPosts);
         }
 
+        // Обновляем Masonry
         if (this.masonry && typeof imagesLoaded !== 'undefined') {
             imagesLoaded(fragment, () => {
-                this.masonry.appended(fragment.children);
+                // Передаём массив элементов, а не fragment.children (который после добавления пуст)
+                this.masonry.appended(items);
                 this.masonry.layout();
             });
         }
@@ -236,7 +242,6 @@ class PortfolioGallery {
 
     // Бесконечный скролл
     handleScroll() {
-        // Не подгружаем, если активен фильтр или поиск
         if (this.currentFilter !== 'all' || this.searchTerm) return;
         if (this.isLoading || !this.hasMore) return;
 
