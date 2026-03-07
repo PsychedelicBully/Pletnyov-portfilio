@@ -183,40 +183,37 @@ main {
     min-height: calc(100vh - 160px);
 }
 
-/* Gallery — masonry сетка с фиксированной шириной колонок */
 .gallery {
-    /*column-count: 4;
-    /* количество колонок */
-    /*column-gap: 1rem;
-    /* расстояние между колонками */
+    position: relative;
     margin: 0 auto;
     padding: 1rem;
-    position: relative; /* для корректной работы Masonry */
 }
 
 .gallery-item {
-    /*display: inline-block;
-    /* важно для работы multi-column */
     width: 300px;
-    /* занимает всю ширину колонки */
-    margin-bottom: 1rem;
-    /* отступ между элементами по вертикали */
+    /* базовая ширина карточки */
+    margin: 0;
+    /* Masonry сам добавит отступы */
     background: var(--bg-color);
-    /*position: relative;*/
     transition: opacity 0.3s ease;
-    /*break-inside: avoid;
-    /* предотвращает разрыв элемента между колонками */
 }
 
-/* Адаптивность: меняем ширину карточки в зависимости от экрана */
 @media (max-width: 1200px) {
-    .gallery-item { width: 280px; }
+    .gallery-item {
+        width: 280px;
+    }
 }
+
 @media (max-width: 900px) {
-    .gallery-item { width: 240px; }
+    .gallery-item {
+        width: 240px;
+    }
 }
+
 @media (max-width: 600px) {
-    .gallery-item { width: 100%; } /* на мобильных одна колонка */
+    .gallery-item {
+        width: 100%;
+    }
 }
 
 .gallery-item img {

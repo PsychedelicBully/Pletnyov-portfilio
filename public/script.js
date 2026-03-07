@@ -77,7 +77,9 @@ class PortfolioGallery {
         this.setupEventListeners();
         this.setupThemeToggle();
         this.loadPinnedAndInitial(); // заменяет loadPortfolio
-        window.addEventListener('scroll', () => this.handleScroll());
+        window.addEventListener('resize', () => {
+            if (this.masonry) this.masonry.layout();
+        });
     }
 
     setupEventListeners() {
@@ -604,14 +606,15 @@ class PortfolioGallery {
         if (typeof Masonry !== 'undefined' && typeof imagesLoaded !== 'undefined') {
             imagesLoaded(this.galleryEl, () => {
                 if (!this.masonry) {
-                    // Создаём Masonry один раз
+                    // Создаём Masonry с отступами
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
-                        columnWidth: '.gallery-item', // ширина берётся из CSS
-                        percentPosition: true          // важно для адаптивности
+                        columnWidth: '.gallery-item',
+                        gutter: 20,                 // расстояние между карточками
+                        percentPosition: true,
+                        transitionDuration: '0.2s'  // плавность
                     });
                 } else {
-                    // Перестраиваем существующий экземпляр
                     this.masonry.layout();
                 }
             });
@@ -727,6 +730,9 @@ class PortfolioGallery {
 
                 const reveal = () => {
                     container.classList.add('loaded');
+                    if (this.masonry) {
+                        this.masonry.layout(); // перестраиваем сетку после загрузки медиа
+                    }
                 };
 
                 if (media.tagName === 'IMG') {
