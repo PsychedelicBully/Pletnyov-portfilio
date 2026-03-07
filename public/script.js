@@ -105,6 +105,7 @@ class PortfolioGallery {
         if (this.pinnedPost) {
             // Нашли в первой порции – сразу показываем
             this.movePinnedToFront();
+            this.filteredPosts = [...this.allPosts];
             this.displayPosts();
             // Фоновая загрузка остальных
             this.loadRemainingPosts();
@@ -185,6 +186,11 @@ class PortfolioGallery {
 
         this.galleryEl.appendChild(fragment);
         this.observeMedia(); // для ленивой загрузки
+
+        // Добавляем новые посты в filteredPosts для будущей фильтрации
+        if (this.currentFilter === 'all' && !this.searchTerm) {
+            this.filteredPosts.push(...newPosts);
+        }
 
         if (this.masonry && typeof imagesLoaded !== 'undefined') {
             imagesLoaded(fragment, () => {
@@ -566,9 +572,7 @@ class PortfolioGallery {
 
         const pinnedPost = this.findPinnedPost(this.allPosts);
         if (pinnedPost) {
-            // Убираем все копии pinned из filtered
             filtered = filtered.filter(p => p.id !== pinnedPost.id);
-            // И вставляем его в начало
             filtered.unshift(pinnedPost);
         }
 

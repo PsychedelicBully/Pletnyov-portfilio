@@ -342,11 +342,20 @@
                 this.render(this.allPosts[currentIndex], currentIndex);
             }
 
-            async fetchAllPosts() {
+            async fetchPostById() {
                 try {
-                    const res = await fetch('/api/tumblr');
+                    // Используем API для получения конкретного поста
+                    const res = await fetch(`/api/tumblr?id=${this.postId}`);
                     const data = await res.json();
-                    this.allPosts = data.response.posts || [];
+                    // Если API поддерживает такой запрос, вернётся один пост
+                    if (data.response && data.response.posts && data.response.posts.length > 0) {
+                        this.allPosts = data.response.posts; // массив из одного поста
+                    } else {
+                        // Если не поддерживает, загружаем все и ищем (запасной вариант)
+                        const allRes = await fetch('/api/tumblr?limit=100');
+                        const allData = await allRes.json();
+                        this.allPosts = allData.response.posts || [];
+                    }
                 } catch (e) {
                     console.error(e);
                 }
