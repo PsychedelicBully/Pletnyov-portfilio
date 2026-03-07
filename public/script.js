@@ -96,11 +96,6 @@ class PortfolioGallery {
         this.filteredPosts = [];
 
         const initialPosts = await this.fetchPage(this.offset, this.limit);
-        if (initialPosts.length === 0) {
-            this.hasMore = false;
-            this.showNoResults();
-            return;
-        }
 
         this.allPosts.push(...initialPosts);
         this.offset += this.limit;
@@ -398,7 +393,7 @@ class PortfolioGallery {
         }
 
         // Если после обработки нет постов, возвращаем демо
-        if (processedPosts.length === 0) return this.generateDemoPosts();
+        if (processedPosts.length === 0) return [];
 
         return processedPosts;
     }
