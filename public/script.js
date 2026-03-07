@@ -611,6 +611,7 @@ class PortfolioGallery {
                 if (!this.masonry) {
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
+                        columnWidth: '.gallery-sizer',
                         percentPosition: true,
                         gutter: 20,
                         transitionDuration: '0.2s'

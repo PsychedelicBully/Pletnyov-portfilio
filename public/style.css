@@ -193,41 +193,44 @@ main {
 
 .gallery-item {
     width: calc(25% - 15px);
-    /* 4 columns with 20px gutters */
     margin-bottom: 20px;
     background: var(--bg-color);
     transition: opacity 0.3s ease;
 }
 
-/* Адаптивность */
+.gallery-sizer {
+    width: calc(25% - 15px);
+}
+
 @media (max-width: 1200px) {
-    .gallery-item {
+
+    .gallery-item,
+    .gallery-sizer {
         width: calc(33.333% - 14px);
-        /* 3 columns */
     }
 }
 
 @media (max-width: 900px) {
-    .gallery-item {
+
+    .gallery-item,
+    .gallery-sizer {
         width: calc(50% - 10px);
-        /* 2 columns */
     }
 }
 
 @media (max-width: 600px) {
-    .gallery-item {
-        width: calc(50% - 8px);
-        /* still 2 columns on mobile */
-        margin-bottom: 15px;
-    }
 
-    .gallery {
-        padding: 1rem;
+    .gallery-item,
+    .gallery-sizer {
+        width: calc(50% - 8px);
+        margin-bottom: 15px;
     }
 }
 
 @media (max-width: 400px) {
-    .gallery-item {
+
+    .gallery-item,
+    .gallery-sizer {
         width: 100%;
     }
 }
