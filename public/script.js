@@ -4,6 +4,15 @@ class PortfolioGallery {
         this.galleryEl = document.getElementById('gallery');
         this.searchInput = document.getElementById('searchInput');
 
+        // Пагинация
+        this.offset = 0;
+        this.limit = 20;
+        this.hasMore = true;
+        this.isLoading = false;
+        this.pinnedPost = null;     // объект закреплённого поста
+        this.masonry = null;        // экземпляр Masonry
+
+
         this.allPosts = [];
         this.filteredPosts = [];
         this.currentFilter = 'all';
@@ -66,19 +75,131 @@ class PortfolioGallery {
 
     init() {
         this.setupEventListeners();
-        this.setupThemeToggle(); // <-- добавить эту строку
-        this.loadPortfolio();
+        this.setupThemeToggle();
+        this.loadPinnedAndInitial(); // заменяет loadPortfolio
+        window.addEventListener('scroll', () => this.handleScroll());
     }
 
     setupEventListeners() {
-        // Только поиск, так как кнопки фильтров на главной больше нет
         this.searchInput.addEventListener('input', (e) => {
             this.searchTerm = e.target.value.toLowerCase().trim();
             this.filterPosts();
         });
     }
 
-    async loadPortfolio() {
+    // Загружает первую порцию и ищет pinned
+    async loadPinnedAndInitial() {
+        this.galleryEl.innerHTML = '';
+        this.offset = 0;
+        this.hasMore = true;
+        this.allPosts = [];
+        this.filteredPosts = [];
+
+        const initialPosts = await this.fetchPage(this.offset, this.limit);
+        if (initialPosts.length === 0) {
+            this.hasMore = false;
+            this.showNoResults();
+            return;
+        }
+
+        this.allPosts.push(...initialPosts);
+        this.offset += this.limit;
+
+        this.pinnedPost = this.findPinnedPost(this.allPosts);
+
+        if (this.pinnedPost) {
+            // Нашли в первой порции – сразу показываем
+            this.movePinnedToFront();
+            this.displayPosts();
+            // Фоновая загрузка остальных
+            this.loadRemainingPosts();
+        } else {
+            // Ищем в следующих порциях
+            await this.searchForPinnedRecursive();
+            if (this.pinnedPost) this.movePinnedToFront();
+            this.displayPosts();
+            if (this.hasMore) this.loadRemainingPosts();
+        }
+    }
+
+    // Запрос одной страницы с сервера
+    async fetchPage(offset, limit) {
+        try {
+            const response = await fetch(`/api/tumblr?offset=${offset}&limit=${limit}`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            const posts = data.response.posts || [];
+            return this.processTumblrPosts(posts);
+        } catch (error) {
+            console.error('Error fetching page:', error);
+            return [];
+        }
+    }
+
+    // Поиск pinned в массиве постов
+    findPinnedPost(postsArray) {
+        return postsArray.find(p => p.tags && p.tags.some(tag => tag.toLowerCase() === 'pinned'));
+    }
+
+    // Перемещает pinned в начало массива allPosts
+    movePinnedToFront() {
+        if (!this.pinnedPost) return;
+        this.allPosts = this.allPosts.filter(p => p.id !== this.pinnedPost.id);
+        this.allPosts.unshift(this.pinnedPost);
+    }
+
+    // Рекурсивно ищет pinned, пока не найдёт или не кончатся посты
+    async searchForPinnedRecursive() {
+        while (this.hasMore && !this.pinnedPost) {
+            const nextPosts = await this.fetchPage(this.offset, this.limit);
+            if (nextPosts.length === 0) {
+                this.hasMore = false;
+                break;
+            }
+            this.allPosts.push(...nextPosts);
+            this.offset += this.limit;
+
+            this.pinnedPost = this.findPinnedPost(nextPosts);
+        }
+    }
+
+    async loadRemainingPosts() {
+        while (this.hasMore && !this.isLoading) {
+            const nextPosts = await this.fetchPage(this.offset, this.limit);
+            if (nextPosts.length === 0) {
+                this.hasMore = false;
+                break;
+            }
+            this.allPosts.push(...nextPosts);
+            this.offset += this.limit;
+
+            // Если не в режиме фильтрации – показываем новые посты
+            if (this.currentFilter === 'all' && !this.searchTerm) {
+                this.appendPosts(nextPosts);
+            }
+        }
+    }
+
+    // Добавляет новые посты в конец галереи и обновляет Masonry
+    appendPosts(newPosts) {
+        const fragment = document.createDocumentFragment();
+        newPosts.forEach(post => {
+            const item = this.createGalleryItem(post);
+            fragment.appendChild(item);
+        });
+
+        this.galleryEl.appendChild(fragment);
+        this.observeMedia(); // для ленивой загрузки
+
+        if (this.masonry && typeof imagesLoaded !== 'undefined') {
+            imagesLoaded(fragment, () => {
+                this.masonry.appended(fragment.children);
+                this.masonry.layout();
+            });
+        }
+    }
+
+    /*async loadPortfolio() {
         this.galleryEl.innerHTML = '';
 
         try {
@@ -98,7 +219,7 @@ class PortfolioGallery {
             this.showDemoData();
         }
 
-    }
+    }*/
 
     async fetchFromTumblrAPI() {
         try {
@@ -110,6 +231,43 @@ class PortfolioGallery {
             console.warn('Using fallback demo data');
             return this.generateDemoPosts();
         }
+    }
+
+    // Бесконечный скролл
+    handleScroll() {
+        // Не подгружаем, если активен фильтр или поиск
+        if (this.currentFilter !== 'all' || this.searchTerm) return;
+        if (this.isLoading || !this.hasMore) return;
+
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        if (scrollY + windowHeight > documentHeight - 300) {
+            this.loadMorePosts();
+        }
+    }
+
+    async loadMorePosts() {
+        if (this.isLoading || !this.hasMore) return;
+        this.isLoading = true;
+
+        const newPosts = await this.fetchPage(this.offset, this.limit);
+        if (newPosts.length === 0) {
+            this.hasMore = false;
+            this.isLoading = false;
+            return;
+        }
+
+        this.allPosts.push(...newPosts);
+        this.offset += this.limit;
+
+        // Показываем новые посты, только если не в режиме фильтрации
+        if (this.currentFilter === 'all' && !this.searchTerm) {
+            this.appendPosts(newPosts);
+        }
+
+        this.isLoading = false;
     }
 
     processTumblrPosts(posts) {
@@ -392,9 +550,9 @@ class PortfolioGallery {
         }
     }
 
+    // Фильтрация с сохранением pinned
     filterPosts() {
         let filtered = this.allPosts.filter(post => {
-            // Поиск по тегам (ваш текущий фильтр)
             if (this.currentFilter !== 'all') {
                 return post.tags && post.tags.some(tag =>
                     tag.toLowerCase().includes(this.currentFilter.toLowerCase())
@@ -405,21 +563,17 @@ class PortfolioGallery {
 
         if (this.searchTerm) {
             filtered = filtered.filter(post =>
-                (post.tags && post.tags.some(tag =>
-                    tag.toLowerCase().includes(this.searchTerm)
-                )) ||
+                (post.tags && post.tags.some(tag => tag.toLowerCase().includes(this.searchTerm))) ||
                 (post.title && post.title.toLowerCase().includes(this.searchTerm)) ||
                 (post.description && post.description.toLowerCase().includes(this.searchTerm))
             );
         }
 
-        // Находим pinned-пост в оригинальном массиве
-        const pinnedPost = this.allPosts.find(p =>
-            p.tags && p.tags.some(tag => tag.toLowerCase() === 'pinned')
-        );
-
-        // Если pinned-пост существует и его нет в filtered, добавляем его в начало
-        if (pinnedPost && !filtered.some(p => p.id === pinnedPost.id)) {
+        const pinnedPost = this.findPinnedPost(this.allPosts);
+        if (pinnedPost) {
+            // Убираем все копии pinned из filtered
+            filtered = filtered.filter(p => p.id !== pinnedPost.id);
+            // И вставляем его в начало
             filtered.unshift(pinnedPost);
         }
 
@@ -427,6 +581,7 @@ class PortfolioGallery {
         this.displayPosts();
     }
 
+    // Полная отрисовка галереи (при фильтрации или первой загрузке)
     displayPosts() {
         if (this.filteredPosts.length === 0) {
             this.showNoResults();
@@ -435,12 +590,37 @@ class PortfolioGallery {
 
         this.galleryEl.innerHTML = '';
 
+        const fragment = document.createDocumentFragment();
         this.filteredPosts.forEach(post => {
             const item = this.createGalleryItem(post);
-            this.galleryEl.appendChild(item);
+            fragment.appendChild(item);
         });
+        this.galleryEl.appendChild(fragment);
 
-        this.observeMedia(); // ← ВАЖНО
+        this.observeMedia();
+
+        // Инициализация или обновление Masonry
+        if (typeof Masonry !== 'undefined' && typeof imagesLoaded !== 'undefined') {
+            imagesLoaded(this.galleryEl, () => {
+                if (!this.masonry) {
+                    this.masonry = new Masonry(this.galleryEl, {
+                        itemSelector: '.gallery-item',
+                        columnWidth: '.gallery-item',
+                        percentPosition: true
+                    });
+                } else {
+                    // Перестраиваем существующий экземпляр
+                    this.masonry.destroy();
+                    this.masonry = new Masonry(this.galleryEl, {
+                        itemSelector: '.gallery-item',
+                        columnWidth: '.gallery-item',
+                        percentPosition: true
+                    });
+                }
+            });
+        } else {
+            console.warn('Masonry or imagesLoaded not loaded – сетка может вести себя непредсказуемо.');
+        }
     }
 
 
