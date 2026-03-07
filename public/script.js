@@ -88,38 +88,60 @@ class PortfolioGallery {
         });
     }
 
-    // REPLACE loadPinnedAndInitial() entirely:
     async loadPinnedAndInitial() {
         this.galleryEl.innerHTML = '';
         this.offset = 0;
         this.hasMore = true;
         this.allPosts = [];
         this.filteredPosts = [];
+        this.pinnedPost = null;
+        this.pinnedPlaceholder = null;
 
-        // Load ALL posts first
+        // Create a placeholder as the first item
+        const placeholder = document.createElement('div');
+        placeholder.className = 'gallery-item pinned-placeholder';
+        placeholder.style.visibility = 'hidden';
+        this.galleryEl.appendChild(placeholder);
+        this.pinnedPlaceholder = placeholder;
+
         while (this.hasMore) {
             const posts = await this.fetchPage(this.offset, this.limit);
-            if (posts.length === 0) {
+            if (posts.length === 0 || posts.length < this.limit) {
+                this.allPosts.push(...posts);
                 this.hasMore = false;
-                break;
+            } else {
+                this.allPosts.push(...posts);
+                this.offset += this.limit;
             }
-            this.allPosts.push(...posts);
-            this.offset += this.limit;
-            if (posts.length < this.limit) {
-                this.hasMore = false;
+
+            // Check if pinned is in this batch
+            if (!this.pinnedPost) {
+                this.pinnedPost = this.findPinnedPost(posts);
+                if (this.pinnedPost) {
+                    // Replace placeholder with real pinned item
+                    const pinnedEl = this.createGalleryItem(this.pinnedPost);
+                    this.galleryEl.replaceChild(pinnedEl, this.pinnedPlaceholder);
+                    this.pinnedPlaceholder = null;
+                }
             }
+
+            // Append this batch (skip pinned post, it's already at top)
+            const toRender = this.pinnedPost
+                ? posts.filter(p => p.id !== this.pinnedPost.id)
+                : posts;
+            this.appendPosts(toRender);
         }
 
-        this.pinnedPost = this.findPinnedPost(this.allPosts);
-        if (this.pinnedPost) this.movePinnedToFront();
+        // If pinned was never found, remove placeholder
+        if (this.pinnedPlaceholder) {
+            this.pinnedPlaceholder.remove();
+            this.pinnedPlaceholder = null;
+        }
 
-        // Apply URL filter if present, otherwise show all
+        // Apply URL filter if present
         if (this.urlFilter) {
             this.currentFilter = this.urlFilter;
             this.filterPosts();
-        } else {
-            this.filteredPosts = [...this.allPosts];
-            this.displayPosts();
         }
     }
 
