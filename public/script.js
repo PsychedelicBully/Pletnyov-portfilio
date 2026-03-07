@@ -606,16 +606,15 @@ class PortfolioGallery {
         if (typeof Masonry !== 'undefined' && typeof imagesLoaded !== 'undefined') {
             imagesLoaded(this.galleryEl, () => {
                 if (!this.masonry) {
-                    // Создаём Masonry с отступами
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
                         columnWidth: '.gallery-item',
-                        gutter: 20,                 // расстояние между карточками
+                        gutter: 20,                // горизонтальные отступы между колонками
                         percentPosition: true,
-                        transitionDuration: '0.2s'  // плавность
+                        transitionDuration: '0.2s'
                     });
                 } else {
-                    this.masonry.layout();
+                    this.masonry.layout();        // перестраиваем существующую сетку
                 }
             });
         }
