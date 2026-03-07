@@ -96,23 +96,21 @@ class PortfolioGallery {
         this.filteredPosts = [];
 
         const initialPosts = await this.fetchPage(this.offset, this.limit);
-
         this.allPosts.push(...initialPosts);
         this.offset += this.limit;
 
         this.pinnedPost = this.findPinnedPost(this.allPosts);
 
         if (this.pinnedPost) {
-            // Нашли в первой порции – сразу показываем
             this.movePinnedToFront();
             this.filteredPosts = [...this.allPosts];
             this.displayPosts();
-            // Фоновая загрузка остальных
             this.loadRemainingPosts();
         } else {
-            // Ищем в следующих порциях
             await this.searchForPinnedRecursive();
             if (this.pinnedPost) this.movePinnedToFront();
+            // !!! ВАЖНО: инициализируем filteredPosts после поиска
+            this.filteredPosts = [...this.allPosts];
             this.displayPosts();
             if (this.hasMore) this.loadRemainingPosts();
         }
@@ -274,7 +272,7 @@ class PortfolioGallery {
     processTumblrPosts(posts) {
         // Проверка входных данных
         if (!posts || !Array.isArray(posts)) {
-            return this.generateDemoPosts();
+            return []; // не возвращаем демо, просто пустой массив
         }
 
         const processedPosts = [];
@@ -290,12 +288,18 @@ class PortfolioGallery {
                 tags: post.tags
             });
 
-            if (uniquePostIds.has(post.id_string || post.id)) return;
+            // Пропускаем дубликаты
+            const postId = post.id_string || post.id;
+            if (uniquePostIds.has(postId)) return;
+            uniquePostIds.add(postId);
+
+            // Определяем, является ли пост закреплённым
+            const isPinned = post.tags && post.tags.some(tag => tag.toLowerCase() === 'pinned');
 
             let images = [];
             let videoUrl = null;
             let embedCode = null;
-            let mediaType = 'image';
+            let mediaType = 'image'; // по умолчанию
 
             // --- Фото-пост ---
             if (post.type === 'photo' && post.photos?.length > 0) {
@@ -355,22 +359,22 @@ class PortfolioGallery {
                     if (!images.length) {
                         images = [extracted[0]];
                     }
-                    // Сохраняем все изображения в allImages (позже добавим в объект)
+                    // Сохраняем все изображения (можно добавить в объект позже)
                 }
 
-                // 3. Если видео есть, но нет даже постера, добавляем пустую строку, чтобы запись создалась
+                // 3. Если видео есть, но нет даже постера, добавляем пустую строку, чтобы запись создалась (для pinned)
                 if (videoInfo && !images.length) {
                     images.push('');
                 }
             }
 
-            // --- Если нашли медиа (изображение или видео), создаём запись ---
-            if (images.length > 0 || videoUrl || embedCode) {
+            // --- Условие добавления поста: есть медиа ИЛИ это закреплённый пост ---
+            if (images.length > 0 || videoUrl || embedCode || isPinned) {
                 const imageUrl = images.length ? images[0] : '';
 
                 processedPosts.push({
-                    id: post.id_string || post.id,
-                    title: this.extractPostTitle(post), // новая функция
+                    id: postId,
+                    title: this.extractPostTitle(post),
                     image: imageUrl,
                     tags: post.tags || [],
                     description: this.extractDescription(post),
@@ -382,12 +386,10 @@ class PortfolioGallery {
                     allImages: images,
                     originalPost: post
                 });
-
-                uniquePostIds.add(post.id_string || post.id);
             }
         });
 
-        // --- Поиск и перемещение pinned-поста в начало ---
+        // --- Поиск pinned-поста и перемещение в начало (если есть) ---
         const pinnedIndex = processedPosts.findIndex(p =>
             p.tags && p.tags.some(tag => tag.toLowerCase() === 'pinned')
         );
@@ -398,7 +400,7 @@ class PortfolioGallery {
             console.log('📌 Найден pinned-пост, перемещён в начало:', pinnedPost.id);
         }
 
-        // Если после обработки нет постов, возвращаем демо
+        // Если после обработки нет постов, возвращаем пустой массив (не демо!)
         if (processedPosts.length === 0) return [];
 
         return processedPosts;
