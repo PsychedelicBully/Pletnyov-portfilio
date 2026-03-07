@@ -183,15 +183,20 @@ main {
     min-height: calc(100vh - 160px);
 }
 
+.grid-sizer {
+    width: 300px;
+}
+
 .gallery {
     position: relative;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
 }
 
 .gallery-item {
     width: 300px;
-    margin: 0 0 20px 0;
+    margin-bottom: 20px;
     /* только нижний отступ для вертикальных промежутков */
     background: var(--bg-color);
     transition: opacity 0.3s ease;
@@ -470,7 +475,7 @@ footer {
     }
 
     .gallery {
-        column-count: 2;
+        column-count: unset;
     }
 
     .footer-content {

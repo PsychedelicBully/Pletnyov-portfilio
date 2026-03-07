@@ -180,26 +180,24 @@ class PortfolioGallery {
     // Добавляет новые посты в конец галереи и обновляет Masonry
     appendPosts(newPosts) {
         const fragment = document.createDocumentFragment();
-        const items = []; // массив для хранения добавленных элементов
+        const items = [];
 
         newPosts.forEach(post => {
             const item = this.createGalleryItem(post);
             fragment.appendChild(item);
-            items.push(item); // запоминаем элемент
+            items.push(item);
         });
 
         this.galleryEl.appendChild(fragment);
-        this.observeMedia(); // для ленивой загрузки
+        this.observeMedia(); // ленивая загрузка
 
-        // Добавляем новые посты в filteredPosts для будущей фильтрации
         if (this.currentFilter === 'all' && !this.searchTerm) {
             this.filteredPosts.push(...newPosts);
         }
 
-        // Обновляем Masonry
+        // Ждём загрузки всех изображений внутри новых элементов
         if (this.masonry && typeof imagesLoaded !== 'undefined') {
-            imagesLoaded(fragment, () => {
-                // Передаём массив элементов, а не fragment.children (который после добавления пуст)
+            imagesLoaded(items, () => {
                 this.masonry.appended(items);
                 this.masonry.layout();
             });
@@ -613,7 +611,7 @@ class PortfolioGallery {
                 if (!this.masonry) {
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
-                        columnWidth: '.gallery-item',
+                        columnWidth: '.grid-sizer',
                         gutter: 20,                // горизонтальные отступы между колонками
                         percentPosition: true,
                         transitionDuration: '0.2s'
