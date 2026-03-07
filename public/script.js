@@ -604,23 +604,17 @@ class PortfolioGallery {
         if (typeof Masonry !== 'undefined' && typeof imagesLoaded !== 'undefined') {
             imagesLoaded(this.galleryEl, () => {
                 if (!this.masonry) {
+                    // Создаём Masonry один раз
                     this.masonry = new Masonry(this.galleryEl, {
                         itemSelector: '.gallery-item',
-                        columnWidth: '.gallery-item',
-                        percentPosition: true
+                        columnWidth: '.gallery-item', // ширина берётся из CSS
+                        percentPosition: true          // важно для адаптивности
                     });
                 } else {
                     // Перестраиваем существующий экземпляр
-                    this.masonry.destroy();
-                    this.masonry = new Masonry(this.galleryEl, {
-                        itemSelector: '.gallery-item',
-                        columnWidth: '.gallery-item',
-                        percentPosition: true
-                    });
+                    this.masonry.layout();
                 }
             });
-        } else {
-            console.warn('Masonry or imagesLoaded not loaded – сетка может вести себя непредсказуемо.');
         }
     }
 
