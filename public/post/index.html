@@ -331,30 +331,44 @@
             async init() {
                 this.setupThemeToggle();
                 if (!this.postId) return;
+
+                // Fetch just this post first for instant render
+                const res = await fetch(`/api/tumblr?id=${this.postId}`);
+                const data = await res.json();
+                const posts = data.response.posts || [];
+                if (posts.length === 0) { this.renderNotFound(); return; }
+
+                // Render immediately
+                this.render(posts[0], 0);
+
+                // Then load all posts in background for navigation
                 await this.fetchPostById();
                 const currentIndex = this.allPosts.findIndex(p =>
                     String(p.id) === this.postId || p.id_string === this.postId
                 );
-                if (currentIndex === -1) {
-                    this.renderNotFound();
-                    return;
+                if (currentIndex !== -1) {
+                    // Re-render just the navigation
+                    this.updateNavigation(currentIndex);
                 }
-                this.render(this.allPosts[currentIndex], currentIndex);
             }
 
             async fetchPostById() {
                 try {
-                    // Используем API для получения конкретного поста
-                    const res = await fetch(`/api/tumblr?id=${this.postId}`);
-                    const data = await res.json();
-                    // Если API поддерживает такой запрос, вернётся один пост
-                    if (data.response && data.response.posts && data.response.posts.length > 0) {
-                        this.allPosts = data.response.posts; // массив из одного поста
-                    } else {
-                        // Если не поддерживает, загружаем все и ищем (запасной вариант)
-                        const allRes = await fetch('/api/tumblr?limit=100');
-                        const allData = await allRes.json();
-                        this.allPosts = allData.response.posts || [];
+                    this.allPosts = [];
+                    let offset = 0;
+                    const limit = 20;
+                    let hasMore = true;
+
+                    while (hasMore) {
+                        const res = await fetch(`/api/tumblr?offset=${offset}&limit=${limit}`);
+                        const data = await res.json();
+                        const posts = data.response.posts || [];
+                        this.allPosts.push(...posts);
+                        if (posts.length < limit) {
+                            hasMore = false;
+                        } else {
+                            offset += limit;
+                        }
                     }
                 } catch (e) {
                     console.error(e);
@@ -522,8 +536,9 @@
                         `<a href="${btn.url}" target="_blank" rel="noopener">${btn.name}</a>`
                     ).join('');
 
-                /* ===== NAVIGATION ===== */
+            }
 
+            updateNavigation(index) {
                 const prev = document.getElementById('prevPost');
                 const next = document.getElementById('nextPost');
 
