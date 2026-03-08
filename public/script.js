@@ -106,13 +106,11 @@ class PortfolioGallery {
 
         while (hasMore) {
             const url = `/api/tumblr?limit=20${before ? `&before=${before}` : ''}`;
-            console.log(`Fetching page ${pageCount + 1}: ${url}`);
 
             let rawPosts = [];
             try {
                 const res = await fetch(url);
                 const data = await res.json();
-                console.log(`Page ${pageCount + 1} response:`, data.response?.posts?.length, 'posts', data);
                 rawPosts = data.response?.posts || [];
             } catch (e) {
                 console.error('Fetch error:', e);
@@ -129,22 +127,17 @@ class PortfolioGallery {
             this.allPosts.push(...processed);
             pageCount++;
 
-            console.log(`Total posts loaded so far: ${this.allPosts.length}`);
 
             if (rawPosts.length < 20) {
                 hasMore = false;
             } else {
                 before = rawPosts[rawPosts.length - 1].timestamp;
-                console.log(`Next before timestamp: ${before}`);
             }
 
             if (!this.pinnedPost) {
                 this.pinnedPost = this.findPinnedPost(processed);
-                if (this.pinnedPost) console.log('Pinned post found on page', pageCount);
             }
         }
-
-        console.log(`Done. Total pages: ${pageCount}, Total posts: ${this.allPosts.length}, Pinned: ${!!this.pinnedPost}`);
 
         loader.remove();
 
@@ -319,15 +312,6 @@ class PortfolioGallery {
         const uniquePostIds = new Set();
 
         posts.forEach((post) => {
-            console.log('📦 Пост:', {
-                id: post.id_string || post.id,
-                type: post.type,
-                has_video_url: !!post.video_url,
-                has_player: !!post.player,
-                has_thumbnail: !!post.thumbnail_url,
-                tags: post.tags
-            });
-
             // Пропускаем дубликаты
             const postId = post.id_string || post.id;
             if (uniquePostIds.has(postId)) return;
@@ -372,12 +356,6 @@ class PortfolioGallery {
                         embedCode = post.player;
                     }
                 }
-
-                console.log('🎥 Видео-пост обработан:', {
-                    images_found: images,
-                    videoUrl,
-                    embedCode: !!embedCode
-                });
             }
 
             // --- Текстовый пост (может содержать встроенное видео) ---
@@ -437,7 +415,6 @@ class PortfolioGallery {
         if (pinnedIndex !== -1) {
             const [pinnedPost] = processedPosts.splice(pinnedIndex, 1);
             processedPosts.unshift(pinnedPost);
-            console.log('📌 Найден pinned-пост, перемещён в начало:', pinnedPost.id);
         }
 
         // Если после обработки нет постов, возвращаем пустой массив (не демо!)
