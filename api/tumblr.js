@@ -1,16 +1,17 @@
- export default async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     try {
         const API_KEY = 'Tf9urGbt1xhKZRCN75vJd1Dhq8JcD3hRRSKHYQnpNv2Xz7r7CG';
         const blog = 'pletnyov.tumblr.com';
-        const { offset = 0, limit = 20, id } = req.query;
+        const { offset = 0, limit = 20, id, before } = req.query;
 
         let tumblrUrl;
         if (id) {
-            // Запрос конкретного поста по ID
             tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?id=${id}&api_key=${API_KEY}`;
+        } else if (before) {
+            tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?api_key=${API_KEY}&limit=${limit}&before=${before}`;
         } else {
-            tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?api_key=${API_KEY}&limit=${limit}&offset=${offset}`;
+            tumblrUrl = `https://api.tumblr.com/v2/blog/${blog}/posts?api_key=${API_KEY}&limit=${limit}`;
         }
 
         const response = await fetch(tumblrUrl);

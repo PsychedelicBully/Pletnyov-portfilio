@@ -90,42 +90,51 @@ class PortfolioGallery {
 
     async loadPinnedAndInitial() {
         this.galleryEl.innerHTML = '';
-        this.offset = 0;
-        this.hasMore = true;
         this.allPosts = [];
         this.filteredPosts = [];
         this.pinnedPost = null;
 
-        // Show a simple loading indicator
         const loader = document.createElement('div');
         loader.id = 'gallery-loader';
-        loader.style.cssText = 'padding: 40px; color: var(--text-secondary);';
-        loader.innerHTML = '<img src="/icon_loader.png" alt="">';
+        loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;';
+        loader.innerHTML = '<img src="/icon.png" alt="">';
         this.galleryEl.appendChild(loader);
 
-        // Fetch all posts silently
-        while (this.hasMore) {
-            const posts = await this.fetchPage(this.offset, this.limit);
-            if (posts.length === 0 || posts.length < this.limit) {
-                this.allPosts.push(...posts);
-                this.hasMore = false;
-            } else {
-                this.allPosts.push(...posts);
-                this.offset += this.limit;
+        let before = null;
+        let hasMore = true;
+
+        while (hasMore) {
+            // fetchPage now takes a 'before' raw timestamp from originalPost
+            const url = `/api/tumblr?limit=20${before ? `&before=${before}` : ''}`;
+            let posts = [];
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                posts = this.processTumblrPosts(data.response.posts || []);
+
+                if (posts.length < 20) {
+                    hasMore = false;
+                } else {
+                    // Get timestamp of last raw post for next page
+                    const rawPosts = data.response.posts;
+                    before = rawPosts[rawPosts.length - 1].timestamp;
+                }
+            } catch (e) {
+                console.error(e);
+                hasMore = false;
             }
 
+            this.allPosts.push(...posts);
+
             if (!this.pinnedPost) {
-                this.pinnedPost = this.findPinnedPost(this.allPosts);
+                this.pinnedPost = this.findPinnedPost(posts);
             }
         }
 
-        // Remove loader
         loader.remove();
 
-        // Pin to front
         if (this.pinnedPost) this.movePinnedToFront();
 
-        // Single render pass — no jumps
         if (this.urlFilter) {
             this.currentFilter = this.urlFilter;
             this.filterPosts();
@@ -136,13 +145,16 @@ class PortfolioGallery {
     }
 
     // Запрос одной страницы с сервера
-    async fetchPage(offset, limit) {
+    async fetchPage(before = null) {
         try {
-            const response = await fetch(`/api/tumblr?offset=${offset}&limit=${limit}`);
+            const limit = 20;
+            let url = `/api/tumblr?limit=${limit}`;
+            if (before) url += `&before=${before}`;
+
+            const response = await fetch(url);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
-            const posts = data.response.posts || [];
-            return this.processTumblrPosts(posts);
+            return this.processTumblrPosts(data.response.posts || []);
         } catch (error) {
             console.error('Error fetching page:', error);
             return [];
