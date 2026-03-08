@@ -102,34 +102,49 @@ class PortfolioGallery {
 
         let before = null;
         let hasMore = true;
+        let pageCount = 0;
 
         while (hasMore) {
-            // fetchPage now takes a 'before' raw timestamp from originalPost
             const url = `/api/tumblr?limit=20${before ? `&before=${before}` : ''}`;
-            let posts = [];
+            console.log(`Fetching page ${pageCount + 1}: ${url}`);
+
+            let rawPosts = [];
             try {
                 const res = await fetch(url);
                 const data = await res.json();
-                posts = this.processTumblrPosts(data.response.posts || []);
-
-                if (posts.length < 20) {
-                    hasMore = false;
-                } else {
-                    // Get timestamp of last raw post for next page
-                    const rawPosts = data.response.posts;
-                    before = rawPosts[rawPosts.length - 1].timestamp;
-                }
+                console.log(`Page ${pageCount + 1} response:`, data.response?.posts?.length, 'posts', data);
+                rawPosts = data.response?.posts || [];
             } catch (e) {
-                console.error(e);
+                console.error('Fetch error:', e);
                 hasMore = false;
+                break;
             }
 
-            this.allPosts.push(...posts);
+            if (rawPosts.length === 0) {
+                hasMore = false;
+                break;
+            }
+
+            const processed = this.processTumblrPosts(rawPosts);
+            this.allPosts.push(...processed);
+            pageCount++;
+
+            console.log(`Total posts loaded so far: ${this.allPosts.length}`);
+
+            if (rawPosts.length < 20) {
+                hasMore = false;
+            } else {
+                before = rawPosts[rawPosts.length - 1].timestamp;
+                console.log(`Next before timestamp: ${before}`);
+            }
 
             if (!this.pinnedPost) {
-                this.pinnedPost = this.findPinnedPost(posts);
+                this.pinnedPost = this.findPinnedPost(processed);
+                if (this.pinnedPost) console.log('Pinned post found on page', pageCount);
             }
         }
+
+        console.log(`Done. Total pages: ${pageCount}, Total posts: ${this.allPosts.length}, Pinned: ${!!this.pinnedPost}`);
 
         loader.remove();
 
