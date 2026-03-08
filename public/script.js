@@ -100,7 +100,7 @@ class PortfolioGallery {
         const loader = document.createElement('div');
         loader.id = 'gallery-loader';
         loader.style.cssText = 'padding: 40px; color: var(--text-secondary);';
-        loader.innerHTML = '<img src="/icon.png" alt="">';
+        loader.innerHTML = '<img src="/icon_loader" alt="">';
         this.galleryEl.appendChild(loader);
 
         // Fetch all posts silently
