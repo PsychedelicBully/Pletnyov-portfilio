@@ -95,15 +95,15 @@ class PortfolioGallery {
         this.allPosts = [];
         this.filteredPosts = [];
         this.pinnedPost = null;
-        this.pinnedPlaceholder = null;
 
-        // Create a placeholder as the first item
-        const placeholder = document.createElement('div');
-        placeholder.className = 'gallery-item pinned-placeholder';
-        placeholder.style.visibility = 'hidden';
-        this.galleryEl.appendChild(placeholder);
-        this.pinnedPlaceholder = placeholder;
+        // Show a simple loading indicator
+        const loader = document.createElement('div');
+        loader.id = 'gallery-loader';
+        loader.style.cssText = 'padding: 40px; color: var(--text-secondary);';
+        loader.textContent = '...';
+        this.galleryEl.appendChild(loader);
 
+        // Fetch all posts silently
         while (this.hasMore) {
             const posts = await this.fetchPage(this.offset, this.limit);
             if (posts.length === 0 || posts.length < this.limit) {
@@ -114,34 +114,24 @@ class PortfolioGallery {
                 this.offset += this.limit;
             }
 
-            // Check if pinned is in this batch
             if (!this.pinnedPost) {
-                this.pinnedPost = this.findPinnedPost(posts);
-                if (this.pinnedPost) {
-                    // Replace placeholder with real pinned item
-                    const pinnedEl = this.createGalleryItem(this.pinnedPost);
-                    this.galleryEl.replaceChild(pinnedEl, this.pinnedPlaceholder);
-                    this.pinnedPlaceholder = null;
-                }
+                this.pinnedPost = this.findPinnedPost(this.allPosts);
             }
-
-            // Append this batch (skip pinned post, it's already at top)
-            const toRender = this.pinnedPost
-                ? posts.filter(p => p.id !== this.pinnedPost.id)
-                : posts;
-            this.appendPosts(toRender);
         }
 
-        // If pinned was never found, remove placeholder
-        if (this.pinnedPlaceholder) {
-            this.pinnedPlaceholder.remove();
-            this.pinnedPlaceholder = null;
-        }
+        // Remove loader
+        loader.remove();
 
-        // Apply URL filter if present
+        // Pin to front
+        if (this.pinnedPost) this.movePinnedToFront();
+
+        // Single render pass — no jumps
         if (this.urlFilter) {
             this.currentFilter = this.urlFilter;
             this.filterPosts();
+        } else {
+            this.filteredPosts = [...this.allPosts];
+            this.displayPosts();
         }
     }
 
