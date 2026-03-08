@@ -54,52 +54,6 @@ class PortfolioGallery {
         return null;
     }
 
-    // ADD this new method:
-    setGridSpan(item) {
-        const rowGap = 20;
-        const rowHeight = 10;
-
-        const updateSpan = () => {
-            // Small timeout ensures the browser has painted the image
-            requestAnimationFrame(() => {
-                const height = item.getBoundingClientRect().height;
-                if (height === 0) return;
-                const span = Math.ceil((height + rowGap) / (rowHeight + rowGap));
-                item.style.gridRowEnd = `span ${span}`;
-            });
-        };
-
-        const media = item.querySelector('img, video');
-        if (!media) return;
-
-        // Also re-measure when lazy src is set (IntersectionObserver loads it later)
-        const observer = new MutationObserver(() => {
-            if (media.src && media.src !== window.location.href) {
-                if (media.tagName === 'IMG') {
-                    if (media.complete) updateSpan();
-                    else media.addEventListener('load', updateSpan, { once: true });
-                } else {
-                    if (media.readyState >= 2) updateSpan();
-                    else media.addEventListener('loadeddata', updateSpan, { once: true });
-                }
-                observer.disconnect();
-            }
-        });
-
-        observer.observe(media, { attributes: true, attributeFilter: ['src'] });
-
-        // Also handle case where src is already set
-        if (media.src && media.src !== window.location.href) {
-            if (media.tagName === 'IMG') {
-                if (media.complete) updateSpan();
-                else media.addEventListener('load', updateSpan, { once: true });
-            } else {
-                if (media.readyState >= 2) updateSpan();
-                else media.addEventListener('loadeddata', updateSpan, { once: true });
-            }
-        }
-    }
-
 
     extractTitleFromCaption(html) {
         if (!html || typeof html !== 'string') return null;
@@ -723,7 +677,6 @@ class PortfolioGallery {
             window.location.href = `/post/${post.id}`;
         });
 
-        this.setGridSpan(item);
         return item;
     }
 

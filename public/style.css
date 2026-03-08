@@ -186,7 +186,7 @@ main {
 .gallery {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 10px;
+    align-items: start;
     gap: 20px;
     padding: 1rem 2rem;
     width: 100%;
@@ -196,6 +196,7 @@ main {
 .gallery-item {
     background: var(--bg-color);
     transition: opacity 0.3s ease;
+    break-inside: avoid;
 }
 
 @media (max-width: 1200px) {
