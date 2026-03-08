@@ -77,8 +77,13 @@ class PortfolioGallery {
         this.setupEventListeners();
         this.setupThemeToggle();
         this.loadPinnedAndInitial();
+        let lastColCount = this.getColumnCount();
         window.addEventListener('resize', () => {
-            if (this.masonry) this.masonry.layout();
+            const newColCount = this.getColumnCount();
+            if (newColCount !== lastColCount) {
+                lastColCount = newColCount;
+                this.displayPosts();
+            }
         });
     }
 
@@ -214,20 +219,33 @@ class PortfolioGallery {
         }
     }
 
-    // Добавляет новые посты в конец галереи и обновляет Masonry
     appendPosts(newPosts) {
-        const fragment = document.createDocumentFragment();
-        const items = [];
+        const colCount = this.getColumnCount();
+        let columns = this.galleryEl.querySelectorAll('.gallery-column');
+
+        // If no columns yet, create them
+        if (columns.length === 0) {
+            const newCols = Array.from({ length: colCount }, () => {
+                const col = document.createElement('div');
+                col.className = 'gallery-column';
+                this.galleryEl.appendChild(col);
+                return col;
+            });
+            columns = newCols;
+        }
+
+        // Count existing items per column to continue distribution
+        const counts = Array.from(columns).map(col => col.children.length);
 
         newPosts.forEach(post => {
+            // Find the column with fewest items
+            const minIndex = counts.indexOf(Math.min(...counts));
             const item = this.createGalleryItem(post);
-            fragment.appendChild(item);
-            items.push(item);
+            columns[minIndex].appendChild(item);
+            counts[minIndex]++;
         });
 
-        this.galleryEl.appendChild(fragment);
-        this.observeMedia(); // ленивая загрузка
-
+        this.observeMedia();
         if (this.currentFilter === 'all' && !this.searchTerm) {
             this.filteredPosts.push(...newPosts);
         }
@@ -600,7 +618,6 @@ class PortfolioGallery {
         this.displayPosts();
     }
 
-    // Полная отрисовка галереи (при фильтрации или первой загрузке)
     displayPosts() {
         if (this.filteredPosts.length === 0) {
             this.showNoResults();
@@ -609,17 +626,25 @@ class PortfolioGallery {
 
         this.galleryEl.innerHTML = '';
 
-        const fragment = document.createDocumentFragment();
-        this.filteredPosts.forEach(post => {
+        const colCount = this.getColumnCount();
+        const columns = Array.from({ length: colCount }, () => document.createElement('div'));
+        columns.forEach(col => col.className = 'gallery-column');
+
+        this.filteredPosts.forEach((post, i) => {
             const item = this.createGalleryItem(post);
-            fragment.appendChild(item);
+            columns[i % colCount].appendChild(item);
         });
-        this.galleryEl.appendChild(fragment);
 
+        columns.forEach(col => this.galleryEl.appendChild(col));
         this.observeMedia();
-
     }
 
+    getColumnCount() {
+        const width = window.innerWidth;
+        if (width <= 900) return 2;
+        if (width <= 1200) return 3;
+        return 4;
+    }
 
     createGalleryItem(post) {
         const item = document.createElement('div');
