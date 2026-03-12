@@ -122,18 +122,33 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
 
-            const res = await fetch('/api/tumblr?limit=100&offset=0');
-            const data = await res.json();
-            const posts = data.response.posts || [];
-
             const tagCounts = new Map();
+            let before = null;
+            let hasMore = true;
 
-            posts.forEach(post => {
-                (post.tags || []).forEach(tag => {
-                    const clean = tag.toLowerCase().trim();
-                    tagCounts.set(clean, (tagCounts.get(clean) || 0) + 1);
-                });
-            });
+            while (hasMore) {
+                const url = `/api/tumblr?limit=20${before ? `&before=${before}` : ''}`;
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const posts = data.response?.posts || [];
+
+                    posts.forEach(post => {
+                        (post.tags || []).forEach(tag => {
+                            const clean = tag.toLowerCase().trim();
+                            tagCounts.set(clean, (tagCounts.get(clean) || 0) + 1);
+                        });
+                    });
+
+                    if (posts.length < 20) {
+                        hasMore = false;
+                    } else {
+                        before = posts[posts.length - 1].timestamp;
+                    }
+                } catch (e) {
+                    hasMore = false;
+                }
+            }
 
             tagCounts.forEach((count, tag) => {
                 const group = classify(tag);
