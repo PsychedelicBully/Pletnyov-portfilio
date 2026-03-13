@@ -120,6 +120,8 @@ class PortfolioGallery {
             } catch (e) {
                 console.error('Fetch error:', e);
                 hasMore = false;
+                loader.remove();
+                this.showDemoData();
                 break;
             }
 
@@ -279,8 +281,8 @@ class PortfolioGallery {
             const data = await response.json();
             return this.processTumblrPosts(data.response.posts);
         } catch (error) {
-            console.warn('Using fallback demo data');
-            return this.generateDemoPosts();
+            this.showDemoData();
+            return [];
         }
     }
 
@@ -512,38 +514,6 @@ class PortfolioGallery {
         return images;
     }
 
-    generateDemoPosts() {
-        return [
-            {
-                id: 'demo-1',
-                title: 'Demo Work 1',
-                image: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=500&fit=crop',
-                tags: ['design', 'art'],
-                description: 'Example portfolio work',
-                date: '2024-01-01',
-                url: '#'
-            },
-            {
-                id: 'demo-2',
-                title: 'Demo Work 2',
-                image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=500&fit=crop',
-                tags: ['photo', 'art'],
-                description: 'Another example work',
-                date: '2024-01-02',
-                url: '#'
-            },
-            {
-                id: 'demo-3',
-                title: 'Demo Work 3',
-                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop',
-                tags: ['design', 'photo'],
-                description: 'Portfolio example',
-                date: '2024-01-03',
-                url: '#'
-            }
-        ];
-    }
-
     extractDescription(post) {
         // Сначала пробуем получить чистый текст из caption или body
         if (post.caption) {
@@ -711,25 +681,19 @@ class PortfolioGallery {
     }
 
     showDemoData() {
-        this.allPosts = this.generateDemoPosts();
-        this.filteredPosts = this.allPosts;
-        this.displayPosts();
-
-        const demoNotice = document.createElement('div');
-        demoNotice.style.cssText = `
+        this.galleryEl.innerHTML = `
+        <div style="
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ffeb3b;
-            color: #333;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            z-index: 1000;
-        `;
-        demoNotice.textContent = 'Демо-режим: данные с Tumblr недоступны';
-        document.body.appendChild(demoNotice);
-        setTimeout(() => demoNotice.remove(), 5000);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            text-align: center;
+            pointer-events: none;
+        ">Включите VPN</div>
+    `;
     }
 
     showNoResults() {
