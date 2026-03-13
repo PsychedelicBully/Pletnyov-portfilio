@@ -102,7 +102,6 @@ class PortfolioGallery {
 
         const loader = document.createElement('div');
         loader.id = 'gallery-loader';
-        loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;';
         loader.innerHTML = '<img src="/icon_loader.png" alt="">';
         this.galleryEl.appendChild(loader);
 
