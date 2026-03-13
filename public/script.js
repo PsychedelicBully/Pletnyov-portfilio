@@ -509,7 +509,9 @@ class PortfolioGallery {
             }
         }
 
-        return images;
+        return images.map(url =>
+            url.replace(/s1280x1920|s2048x3072|s640x960/, 's500x750')
+        );
     }
 
     generateDemoPosts() {
