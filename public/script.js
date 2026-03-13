@@ -358,7 +358,9 @@ class PortfolioGallery {
                     images.push(post.thumbnail_url);
                 } else if (post.photos?.length > 0) {
                     const firstPhoto = post.photos[0];
-                    if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
+                    const sizes = firstPhoto.alt_sizes || [];
+                    const medium = sizes.find(s => s.width <= 500) || firstPhoto.original_size;
+                    images.push(medium.url);
                 } else if (post.body) {
                     const extracted = this.extractImagesFromContent(post.body);
                     if (extracted.length) images.push(extracted[0]);
