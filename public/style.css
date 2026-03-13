@@ -410,38 +410,6 @@ main {
     opacity: 0.8;
 }
 
-/* Footer */
-footer {
-    padding: 2rem 0;
-    margin-top: 2rem;
-}
-
-.footer-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1rem;
-    color: var(--text-secondary);
-}
-
-.footer-links {
-    display: flex;
-    gap: 2rem;
-}
-
-.footer-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.footer-link:hover {
-    color: var(--text-color);
-}
-
 /* Адаптивность */
 @media (max-width: 768px) {
     .header-content {
@@ -480,16 +448,6 @@ footer {
 
     .gallery {
         column-count: unset;
-    }
-
-    .footer-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    .footer-links {
-        gap: 1.5rem;
     }
 }
 
