@@ -358,7 +358,9 @@ class PortfolioGallery {
                     images.push(post.thumbnail_url);
                 } else if (post.photos?.length > 0) {
                     const firstPhoto = post.photos[0];
-                    if (firstPhoto.original_size?.url) images.push(firstPhoto.original_size.url);
+                    const sizes = firstPhoto.alt_sizes || [];
+                    const medium = sizes.find(s => s.width <= 500) || firstPhoto.original_size;
+                    images.push(medium.url);
                 } else if (post.body) {
                     const extracted = this.extractImagesFromContent(post.body);
                     if (extracted.length) images.push(extracted[0]);
@@ -486,7 +488,6 @@ class PortfolioGallery {
                     if (url.includes('tumblr.com/s640x960') ||
                         url.includes('tumblr.com/s1280x1920') ||
                         url.includes('tumblr.com/s2048x3072') ||
-                        url.includes('tumblr.com/s500x750') ||
                         url.includes('.jpg') || url.includes('.jpeg') ||
                         url.includes('.png') || url.includes('.gif') || url.includes('.webp')) {
                         images.push(url);
@@ -508,9 +509,7 @@ class PortfolioGallery {
             }
         }
 
-        return images.map(url =>
-            url.replace(/s1280x1920|s2048x3072|s640x960/, 's500x750')
-        );
+        return images;
     }
 
     generateDemoPosts() {
