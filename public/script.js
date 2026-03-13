@@ -486,6 +486,7 @@ class PortfolioGallery {
                     if (url.includes('tumblr.com/s640x960') ||
                         url.includes('tumblr.com/s1280x1920') ||
                         url.includes('tumblr.com/s2048x3072') ||
+                        url.includes('tumblr.com/s500x750') ||
                         url.includes('.jpg') || url.includes('.jpeg') ||
                         url.includes('.png') || url.includes('.gif') || url.includes('.webp')) {
                         images.push(url);
