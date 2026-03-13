@@ -122,6 +122,12 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
 
+            // Add loader
+            const loader = document.createElement('div');
+            loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;';
+            loader.innerHTML = '<img src="/icon_loader.png" alt="">';
+            document.body.appendChild(loader);
+
             const tagCounts = new Map();
             let before = null;
             let hasMore = true;
@@ -149,6 +155,9 @@
                     hasMore = false;
                 }
             }
+
+            // Remove loader
+            loader.remove();
 
             tagCounts.forEach((count, tag) => {
                 const group = classify(tag);
