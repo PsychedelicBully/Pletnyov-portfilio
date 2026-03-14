@@ -8,6 +8,32 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" type="image/png" href="/icon.png">
     <style>
+        #gallery-loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        #gallery-loader img {
+            width: 100px;
+            height: 100px;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
         /* Мобильная версия для страницы фильтров */
         @media (max-width: 768px) {
             .header-content {
@@ -58,31 +84,6 @@
                 grid-column: 1 / -1;
             }
 
-            #gallery-loader {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 100;
-            }
-
-            #gallery-loader img {
-                width: 100px;
-                height: 100px;
-                animation: pulse 1.2s ease-in-out infinite;
-            }
-
-            @keyframes pulse {
-
-                0%,
-                100% {
-                    opacity: 1;
-                }
-
-                50% {
-                    opacity: 0.3;
-                }
-            }
         }
     </style>
 </head>
@@ -131,7 +132,7 @@
         const COLORS = ["black", "blue", "green", "grey", "red", "orange", "pink", "yellow", "metal", "paper", "white", "purple"];
         const WEARABLE = ["bag", "dress", "hoodie", "jacket", "shirt", "shoes", "wear", "denim", "glasses", "mens", "womens", "top", "necklace", "mask", "long", "hat"];
         const OBJECT = ["architecture", "furniture", "home", "object", "paintings", "toy", "transport", "watch", "sport", "urban", "light", "sculpture", "hair", "food"];
-        const SCENE = ["logo", "package", "font", "letters", "photo", "video", "print", "typography", "product", "gfx", "navigation", "interface", "concept", "sketch", "idea", "decal", "art", "prompt", "craft", "camera", "music", "3d", "illustration", "poster", "lettering", "identity", "animation", "ai"];
+        const SCENE = ["logo", "package", "font", "letters", "photo", "video", "print", "typography", "product", "gfx", "navigation", "interface", "concept", "sketch", "idea", "decal", "art", "prompt", "craft", "camera", "music", "3d", "illustration", "poster", "lettering", "identity", "animation", "ai", "backstage"];
         const TEAM = ["solo", "cult", "kontur", "hazeon", "als", "hityre", "netnet", "studies", "kseniashnaider"];
 
         function classify(tag) {
@@ -150,7 +151,7 @@
 
             // Add loader
             const loader = document.createElement('div');
-            loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;';
+            loader.id = 'gallery-loader';
             loader.innerHTML = '<img src="/icon_loader.png" alt="">';
             document.body.appendChild(loader);
 
