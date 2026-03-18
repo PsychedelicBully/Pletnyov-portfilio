@@ -252,28 +252,6 @@ class PortfolioGallery {
         }
     }
 
-    /*async loadPortfolio() {
-        this.galleryEl.innerHTML = '';
-
-        try {
-            const posts = await this.fetchFromTumblrAPI();
-            this.allPosts = posts;
-            this.filteredPosts = posts;
-
-            // Если в URL есть фильтр, применяем его
-            if (this.urlFilter) {
-                this.currentFilter = this.urlFilter;
-                this.filterPosts(); // filterPosts сам вызовет displayPosts
-            } else {
-                this.displayPosts();
-            }
-        } catch (error) {
-            console.error('Error loading from Tumblr:', error);
-            this.showDemoData();
-        }
-
-    }*/
-
     async fetchFromTumblrAPI() {
         try {
             const response = await fetch('/api/tumblr');
